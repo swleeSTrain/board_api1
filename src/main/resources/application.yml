@@ -38,4 +38,11 @@ org:
 
 logging:
   level:
-    org.springframework.security.web: TRACE
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
+
