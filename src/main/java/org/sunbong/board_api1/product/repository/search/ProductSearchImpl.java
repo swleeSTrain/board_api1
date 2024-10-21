@@ -57,9 +57,6 @@ public class ProductSearchImpl extends QuerydslRepositorySupport implements Prod
 
         tupleQuery.fetch();
 
-
-
-
         return null;
     }
 

@@ -11,7 +11,9 @@ import org.sunbong.board_api1.common.dto.PageRequestDTO;
 import org.sunbong.board_api1.common.dto.PageResponseDTO;
 import org.sunbong.board_api1.common.exception.CommonExceptions;
 import org.sunbong.board_api1.product.repository.ProductRepository;
+import org.sunbong.board_api1.qna.domain.Question;
 import org.sunbong.board_api1.qna.dto.QnaListDTO;
+import org.sunbong.board_api1.qna.dto.QnaRegisterDTO;
 import org.sunbong.board_api1.qna.repository.QnaRepository;
 
 @Service
@@ -35,4 +37,5 @@ public class QnaService {
         // QnaRepository의 list 메서드를 호출하여 페이징 결과 얻음
         return qnaRepository.list(pageable);
     }
+
 }
