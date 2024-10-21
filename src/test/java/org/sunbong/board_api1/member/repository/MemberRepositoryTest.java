@@ -59,6 +59,7 @@ public class MemberRepositoryTest {
                     .member(member)
                     .build();
             cartRepository.save(cart);
+
         }
 
     }
