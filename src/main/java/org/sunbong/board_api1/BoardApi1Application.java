@@ -10,4 +10,6 @@ public class BoardApi1Application {
         SpringApplication.run(BoardApi1Application.class, args);
     }
 
+    // 하재민 테스트용
+
 }
