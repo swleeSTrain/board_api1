@@ -39,7 +39,7 @@ public class CustomSecurityConfig {
 
         http.csrf(config -> config.disable());
 
-        http.addFilterBefore(new JWTCheckFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+        //http.addFilterBefore(new JWTCheckFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         http.cors(cors -> {
             cors.configurationSource(corsConfigurationSource());
