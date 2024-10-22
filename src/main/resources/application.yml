@@ -34,7 +34,7 @@ org:
     refreshTime: 10
     alwaysNew: true
     upload:
-      path: upload
+      path: C:/upload
 
 logging:
   level:

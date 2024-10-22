@@ -24,7 +24,7 @@ public class QnaRepositoryTest {
     private QuestionRepository questionRepository;
 
     @Autowired
-    private QnaRepository qnaRepository;
+    private AnswerRepository qnaRepository;
 
     @Test
     public void testRead() {
