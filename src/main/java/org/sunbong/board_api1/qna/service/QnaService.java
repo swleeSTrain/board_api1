@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
+
 @Service
 @Transactional
 @Log4j2
@@ -153,4 +154,54 @@ public class QnaService {
         return qno; // 삭제된 질문의 ID 반환
     }
 
+    // 수정
+    public Long updateQuestion(Long qno, QuestionAddDTO dto) throws IOException {
+        Question question = questionRepository.findById(qno)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid question ID"));
+
+        // 기존 질문을 수정
+        Question updatedQuestion = question.toBuilder()
+                .title(dto.getTitle())
+                .content(dto.getContent())
+                .tags(dto.getTags())
+                .writer(dto.getWriter())
+                .build();
+
+        // 기존 파일 삭제
+        if (dto.getAttachFiles() != null && !dto.getAttachFiles().isEmpty()) {
+            for (String fileName : dto.getAttachFiles()) {
+                deleteFile(fileName); // 여기에서 QnaService의 deleteFile 메서드 호출
+            }
+        }
+
+        // 새로운 파일 추가
+        if (dto.getFiles() != null && !dto.getFiles().isEmpty()) {
+            for (MultipartFile file : dto.getFiles()) {
+                String savedFileName = saveFile(file);
+                updatedQuestion.addFile(savedFileName); // 새로운 파일 추가
+            }
+        }
+
+        // 질문 업데이트
+        questionRepository.save(updatedQuestion);
+
+        return updatedQuestion.getQno(); // 업데이트된 질문의 ID 반환
+    }
+
+    private void deleteFile(String fileName) throws IOException {
+
+        Path filePath = Paths.get(uploadDir, fileName); // 파일 경로 생성
+
+        try {
+
+            Files.deleteIfExists(filePath); // 파일이 존재하면 삭제
+            log.info("파일 삭제 성공: " + fileName);
+
+        } catch (IOException e) {
+
+            log.error("파일 삭제 중 오류 발생: " + fileName, e);
+            throw new IOException("파일 삭제 실패", e); // 예외 처리
+
+        }
+    }
 }

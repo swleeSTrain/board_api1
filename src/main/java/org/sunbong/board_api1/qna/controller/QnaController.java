@@ -72,6 +72,14 @@ public class QnaController {
         return ResponseEntity.ok(deletedQno);
     }
 
+    @PutMapping("/{qno}")
+    public ResponseEntity<Long> updateQuestion(
+            @PathVariable Long qno,
+            @ModelAttribute QuestionAddDTO dto) throws IOException {
 
+        Long updatedQno = qnaService.updateQuestion(qno, dto);
+
+        return ResponseEntity.ok(updatedQno);
+    }
 
 }
