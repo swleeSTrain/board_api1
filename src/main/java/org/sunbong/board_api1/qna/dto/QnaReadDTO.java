@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -27,8 +28,16 @@ public class QnaReadDTO {
     private Set<String> attachFiles;
 
     // 답변 관련
-    private Long ano;
-    private String answerContent;
-    private String answerWriter;
-    private LocalDateTime answerCreatedDate;
+    private List<AnswerDTO> answers; // AnswerDTO를 추가
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class AnswerDTO {
+        private Long ano;
+        private String answerContent;
+        private String answerWriter;
+        private LocalDateTime answerCreatedDate;
+    }
 }
+

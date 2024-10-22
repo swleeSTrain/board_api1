@@ -14,10 +14,7 @@ import org.sunbong.board_api1.qna.domain.Question;
 import org.sunbong.board_api1.qna.dto.QnaReadDTO;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -29,7 +26,6 @@ public class QnaSearchImpl extends QuerydslRepositorySupport implements QnaSearc
 
     @Override
     public PageResponseDTO<QnaReadDTO> readByQno(Long qno, PageRequestDTO pageRequestDTO) {
-
         log.info("-------------------list by qno-----------");
 
         Pageable pageable = PageRequest.of(
@@ -42,17 +38,14 @@ public class QnaSearchImpl extends QuerydslRepositorySupport implements QnaSearc
         QAnswer answer = QAnswer.answer;
         QAttachFile attachFile = QAttachFile.attachFile;
 
-        // Create query
         JPQLQuery<Question> query = from(question);
         query.leftJoin(answer).on(answer.question.eq(question));
-        query.leftJoin(question.attachFiles, attachFile); // join attachFiles
+        query.leftJoin(question.attachFiles, attachFile);
 
         query.where(question.qno.eq(qno));
 
-        // Apply pagination
         this.getQuerydsl().applyPagination(pageable, query);
 
-        // Fetch the selected data
         JPQLQuery<Tuple> tupleQuery = query.select(
                 question.qno,
                 question.title,
@@ -68,42 +61,48 @@ public class QnaSearchImpl extends QuerydslRepositorySupport implements QnaSearc
         );
 
         List<Tuple> results = tupleQuery.fetch();
-        List<QnaReadDTO> dtoList = new ArrayList<>();
+        Map<Long, QnaReadDTO> dtoMap = new HashMap<>();
 
         for (Tuple tuple : results) {
             Long questionQno = tuple.get(question.qno);
-            String questionTitle = tuple.get(question.title);
-            String questionContent = tuple.get(question.content);
-            String questionWriter = tuple.get(question.writer);
-            LocalDateTime questionCreatedDate = tuple.get(question.createdDate);
-            LocalDateTime questionModifiedDate = tuple.get(question.modifiedDate);
 
-            // 파일명 처리, null 체크 없을 수도 있으니까 사진이
-            String fileName = tuple.get(attachFile.fileName);
-            Set<String> attachFiles = (fileName != null) ? Set.of(fileName) : Collections.emptySet();  // 파일이 없으면 빈 값으로 설정
-
-            Long answerAno = tuple.get(answer.ano);
-            String answerContent = tuple.get(answer.content);
-            String answerWriter = tuple.get(answer.writer);
-            LocalDateTime answerCreatedDate = tuple.get(answer.createdDate);
-
-            QnaReadDTO dto = QnaReadDTO.builder()
+            // 질문 DTO를 가져오거나 생성
+            QnaReadDTO dto = dtoMap.computeIfAbsent(questionQno, key -> QnaReadDTO.builder()
                     .qno(questionQno)
-                    .questionTitle(questionTitle)
-                    .questionContent(questionContent)
-                    .questionWriter(questionWriter)
-                    .questionCreatedDate(questionCreatedDate)
-                    .questionModifiedDate(questionModifiedDate)
-                    .attachFiles(attachFiles)  // 파일 목록 추가
-                    .ano(answerAno)
-                    .answerContent(answerContent)
-                    .answerWriter(answerWriter)
-                    .answerCreatedDate(answerCreatedDate)
-                    .build();
+                    .questionTitle(tuple.get(question.title))
+                    .questionContent(tuple.get(question.content))
+                    .questionWriter(tuple.get(question.writer))
+                    .questionCreatedDate(tuple.get(question.createdDate))
+                    .questionModifiedDate(tuple.get(question.modifiedDate))
+                    .attachFiles(new HashSet<>())  // 중복 방지를 위한 빈 Set 생성
+                    .answers(new ArrayList<>())
+                    .build());
 
-            dtoList.add(dto);
+            // 첨부파일 처리
+            String fileName = tuple.get(attachFile.fileName);
+            if (fileName != null) {
+                dto.getAttachFiles().add(fileName); // 파일 추가
+            }
+
+            // 답변 DTO 생성
+            Long answerAno = tuple.get(answer.ano);
+            if (answerAno != null) {
+                QnaReadDTO.AnswerDTO answerDto = new QnaReadDTO.AnswerDTO(
+                        answerAno,
+                        tuple.get(answer.content),
+                        tuple.get(answer.writer),
+                        tuple.get(answer.createdDate)
+                );
+
+                // 중복된 답변 추가 방지
+                if (dto.getAnswers().stream().noneMatch(a -> a.getAno().equals(answerAno))) {
+                    dto.getAnswers().add(answerDto); // 답변 추가
+                }
+            }
         }
 
+        // dtoMap.values()를 사용하여 dtoList에 추가
+        List<QnaReadDTO> dtoList = new ArrayList<>(dtoMap.values());
         long total = tupleQuery.fetchCount();
 
         return PageResponseDTO.<QnaReadDTO>withAll()
@@ -112,4 +111,6 @@ public class QnaSearchImpl extends QuerydslRepositorySupport implements QnaSearc
                 .pageRequestDTO(pageRequestDTO)
                 .build();
     }
+
+
 }
