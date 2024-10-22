@@ -2,9 +2,9 @@ package org.sunbong.board_api1.qna.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.sunbong.board_api1.qna.domain.Answer;
-import org.sunbong.board_api1.qna.repository.search.QnaSearch;
+import org.sunbong.board_api1.qna.repository.search.AnswerSearch;
 
-public interface QnaRepository extends JpaRepository<Answer, Long>, QnaSearch {
+public interface AnswerRepository extends JpaRepository<Answer, Long>, AnswerSearch {
 
 
 }

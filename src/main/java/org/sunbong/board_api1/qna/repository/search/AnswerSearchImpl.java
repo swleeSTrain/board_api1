@@ -13,14 +13,12 @@ import org.sunbong.board_api1.qna.domain.QQuestion;
 import org.sunbong.board_api1.qna.domain.Question;
 import org.sunbong.board_api1.qna.dto.QnaReadDTO;
 
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Log4j2
-public class QnaSearchImpl extends QuerydslRepositorySupport implements QnaSearch {
+public class AnswerSearchImpl extends QuerydslRepositorySupport implements AnswerSearch {
 
-    public QnaSearchImpl() {
+    public AnswerSearchImpl() {
         super(Question.class);
     }
 
