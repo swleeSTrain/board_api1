@@ -1,6 +1,8 @@
 spring:
   application:
     name: board_api1
+  resources:
+    sta
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
     url: jdbc:mariadb://10.10.10.54:13306/vgdb
