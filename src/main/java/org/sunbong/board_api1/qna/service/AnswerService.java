@@ -24,6 +24,7 @@ public class AnswerService {
     private final AnswerRepository answerRepository;
     private final QuestionRepository questionRepository;
 
+    // 답변 등록
     @Transactional
     public Long registerAnswer(AnswerAddDTO dto) {
 
@@ -43,7 +44,7 @@ public class AnswerService {
         return savedAnswer.getAno();  // 등록된 답변의 ID 반환
     }
 
-    // 삭제
+    // 답변 삭제
     public Long delete(Long id) {
         // 존재 여부 확인 후 삭제
         Answer answer = answerRepository.findById(id)
@@ -56,7 +57,7 @@ public class AnswerService {
         return qno; // 삭제된 질문의 ID 반환
     }
 
-    // 수정
+    // 답변 수정
     public Long updateAnswer(Long ano, AnswerAddDTO dto) {
         Answer answer = answerRepository.findById(ano)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid answer ID"));
