@@ -27,6 +27,7 @@ import java.util.UUID;
 @Log4j2
 @RequiredArgsConstructor
 public class NoticeService {
+
     private final NoticeRepository noticeRepository;
 
     // 파일 저장 경로를 설정 파일에서 읽어옴

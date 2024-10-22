@@ -27,7 +27,6 @@ public class NoticeSearchImpl extends QuerydslRepositorySupport implements Notic
     public PageResponseDTO<NoticeListDTO> noticeList(PageRequestDTO pageRequestDTO) {
         log.info("-------------Notice List Query-------------");
 
-        // Pageable 생성
         Pageable pageable = PageRequest.of(
                 pageRequestDTO.getPage() - 1,
                 pageRequestDTO.getSize(),
@@ -37,27 +36,32 @@ public class NoticeSearchImpl extends QuerydslRepositorySupport implements Notic
         QNotice notice = QNotice.notice;
         QAttachedDocument document = QAttachedDocument.attachedDocument;
 
-        // Notice 엔티티에서 attachDocuments에 대해 조인
-        JPQLQuery<Notice> query = from(notice);
-        query.leftJoin(notice.attachDocuments, document);
+        // 고정된 공지사항 쿼리
+        List<Notice> pinnedNotices = from(notice)
+                .where(notice.isPinned.eq(true))
+                .orderBy(notice.priority.desc(), notice.updateTime.desc())
+                .fetch();
 
-        // 중요도에 따라 공지사항 고정 및 상태 업데이트
-        query.where(notice.status.eq(NoticeStatus.PUBLISHED)
-                .and(document.ord.eq(0).or(document.isNull())));
-        query.orderBy(
-                notice.isPinned.desc(),    // 고정 여부
-                notice.priority.desc(),    // 중요도
-                notice.updateTime.desc(),  // 최근 수정 시간
-                notice.createTime.desc()   // 최근 작성 시간
-        );
+        // 일반 공지사항 쿼리
+        JPQLQuery<Notice> query = from(notice)
+                .leftJoin(notice.attachDocuments, document)
+                .where(notice.status.eq(NoticeStatus.PUBLISHED)
+                        .and(notice.isPinned.eq(false)))
+                .orderBy(
+                        notice.priority.desc(),
+                        notice.updateTime.desc(),
+                        notice.createTime.desc()
+                );
 
-        // 페이징 처리 적용
         JPQLQuery<Notice> pageableQuery = getQuerydsl().applyPagination(pageable, query);
 
-        // 결과 가져오기
         List<Notice> noticeList = pageableQuery.fetch();
 
-        if (noticeList.isEmpty()) {
+        // 고정된 공지사항을 일반 공지사항 앞에 추가
+        List<Notice> combinedNotices = new ArrayList<>(pinnedNotices);
+        combinedNotices.addAll(noticeList);
+
+        if (combinedNotices.isEmpty()) {
             return PageResponseDTO.<NoticeListDTO>withAll()
                     .dtoList(new ArrayList<>())
                     .pageRequestDTO(pageRequestDTO)
@@ -65,8 +69,7 @@ public class NoticeSearchImpl extends QuerydslRepositorySupport implements Notic
                     .build();
         }
 
-        // Notice 엔티티를 DTO로 변환
-        List<NoticeListDTO> dtoList = noticeList.stream()
+        List<NoticeListDTO> dtoList = combinedNotices.stream()
                 .map(noticeEntity -> NoticeListDTO.builder()
                         .noticeNo(noticeEntity.getNoticeNo())
                         .noticeTitle(noticeEntity.getNoticeTitle())
@@ -75,21 +78,19 @@ public class NoticeSearchImpl extends QuerydslRepositorySupport implements Notic
                         .createTime(noticeEntity.getCreateTime())
                         .updateTime(noticeEntity.getUpdateTime())
                         .attachDocuments(noticeEntity.getAttachDocuments() != null && !noticeEntity.getAttachDocuments().isEmpty() ? "첨부파일 있음" : "첨부파일 없음")
-                        .priority(noticeEntity.getPriority()) // 중요도
-                        .isPinned(Boolean.TRUE.equals(noticeEntity.getIsPinned()))    // 고정 여부
+                        .priority(noticeEntity.getPriority())
+                        .isPinned(Boolean.TRUE.equals(noticeEntity.getIsPinned()))
                         .build())
                 .collect(Collectors.toList());
 
         long total = query.fetchCount();
 
-        // PageResponseDTO로 반환
         return PageResponseDTO.<NoticeListDTO>withAll()
                 .dtoList(dtoList)
                 .pageRequestDTO(pageRequestDTO)
                 .totalCount(total)
                 .build();
     }
+
 }
-
-
 
