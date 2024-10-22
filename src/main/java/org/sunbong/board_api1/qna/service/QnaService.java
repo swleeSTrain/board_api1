@@ -140,4 +140,17 @@ public class QnaService {
         }
     }
 
+    // 삭제
+    public Long delete(Long id) {
+        // 존재 여부 확인 후 삭제
+        Question question = questionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Notice not found with ID: " + id));
+
+        // 질문 ID 반환하기 전에 삭제
+        Long qno = question.getQno();
+        questionRepository.delete(question);
+
+        return qno; // 삭제된 질문의 ID 반환
+    }
+
 }

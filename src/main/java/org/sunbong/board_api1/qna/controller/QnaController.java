@@ -64,6 +64,14 @@ public class QnaController {
         return ResponseEntity.ok(ano);
     }
 
+    @DeleteMapping("/{qno}")
+    public ResponseEntity<Long> delete(@PathVariable Long qno) {
+
+        Long deletedQno = qnaService.delete(qno);
+
+        return ResponseEntity.ok(deletedQno);
+    }
+
 
 
 }
