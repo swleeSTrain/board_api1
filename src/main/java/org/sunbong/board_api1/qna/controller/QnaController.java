@@ -7,14 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.sunbong.board_api1.common.dto.PageRequestDTO;
-import org.sunbong.board_api1.common.dto.PageResponseDTO;
-import org.sunbong.board_api1.product.dto.ProductListDTO;
-import org.sunbong.board_api1.product.service.ProductService;
-import org.sunbong.board_api1.qna.dto.QnaListDTO;
-import org.sunbong.board_api1.qna.dto.QnaRegisterDTO;
+import org.sunbong.board_api1.qna.dto.AnswerRegisterDTO;
+import org.sunbong.board_api1.qna.dto.QuestionListDTO;
+import org.sunbong.board_api1.qna.dto.QuestionAddDTO;
 import org.sunbong.board_api1.qna.service.QnaService;
-
-import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/v1/qna")
@@ -25,22 +21,32 @@ public class QnaController {
     private final QnaService qnaService;
 
     @GetMapping("list")
-    public ResponseEntity<Page<QnaListDTO>> list(
+    public ResponseEntity<Page<QuestionListDTO>> list(
             @Validated PageRequestDTO requestDTO
     ) {
+
         log.info("--------------------------Qna Controller list");
         log.info("==============================");
+
         return ResponseEntity.ok(qnaService.list(requestDTO));
     }
 
-    @PostMapping("register")
-    public ResponseEntity<String> register(
-            @Validated @RequestBody QnaRegisterDTO qnaRegisterDTO
-            ) {
-        log.info("Registering new QnA: " + qnaRegisterDTO);
-        qnaService.register(qnaRegisterDTO);
-        return ResponseEntity.ok("QnA registered successfully");
+    @PostMapping("add/question")
+    public ResponseEntity<Long> registerQuestion(@RequestBody QuestionAddDTO dto) {
+
+        Long qno = qnaService.registerQuestion(dto);
+
+        return ResponseEntity.ok(qno);
     }
+
+    @PostMapping("add/answer")
+    public ResponseEntity<Long> registerAnswer(@RequestBody AnswerRegisterDTO dto) {
+
+        Long ano = qnaService.registerAnswer(dto);
+
+        return ResponseEntity.ok(ano);
+    }
+
 
 
 }

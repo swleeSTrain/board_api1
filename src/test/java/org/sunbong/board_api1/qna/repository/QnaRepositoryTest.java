@@ -8,9 +8,13 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.sunbong.board_api1.common.dto.PageRequestDTO;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.transaction.annotation.Transactional;
+import org.sunbong.board_api1.qna.domain.Answer;
 import org.sunbong.board_api1.qna.domain.Question;
-import org.sunbong.board_api1.qna.dto.QnaListDTO;
+import org.sunbong.board_api1.qna.dto.QuestionListDTO;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @Log4j2
 @DataJpaTest
@@ -18,12 +22,15 @@ import org.sunbong.board_api1.qna.dto.QnaListDTO;
 public class QnaRepositoryTest {
 
     @Autowired
-    private QnaRepository qnaRepository;
+    private QuestionRepository questionRepository;
+
+    @Autowired
+    private AnswerRepository answerRepository;
 
     @Test
     public void testList1() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<QnaListDTO> result = qnaRepository.list(pageable); // 반환 타입을 Page<QnaListDTO>로 변경
+        Page<QuestionListDTO> result = questionRepository.list(pageable); // 반환 타입을 Page<QnaListDTO>로 변경
 
         // 결과 출력
         result.getContent().forEach(dto -> {
@@ -31,11 +38,46 @@ public class QnaRepositoryTest {
         });
     }
 
+    @Test
+    @Transactional
+    @Rollback(false)  // 이 애너테이션을 추가하여 롤백 방지
+    public void testRegisterQuestion() {
+        // given: Question 엔티티 생성
+        Question question = Question.builder()
+                .title("여보세요 나야")
+                .content("거기 잘지내니")
+                .writer("임창정")
+                .build();
 
-//    @Test
-//    public void testList2() {
-//        PageRequestDTO pageRequestDTO = PageRequestDTO.builder().build();
-//        log.info(qnaRepository.listByCno(1L, pageRequestDTO));
-//    }
+        // 첨부 파일 추가
+        question.addFile("소주한잔.jpg");
+
+        // when: QnaRepository를 이용해 저장
+        Question savedQuestion = questionRepository.save(question);
+
+
+    }
+
+    @Test
+    @Transactional
+    @Rollback(false)  // 롤백 방지
+    public void testRegisterAnswer() {
+
+        // given: 등록할 Question 엔티티 찾기
+        Question question = questionRepository.findById(1L)
+                .orElseThrow(() -> new IllegalArgumentException("Question not found"));
+
+        Answer answer = Answer.builder()
+                .content("답변.")
+                .writer("hi")
+                .question(question)  // 해당 질문에 대한 답변으로 설정
+                .build();
+
+        Answer savedAnswer = answerRepository.save(answer);
+
+        System.out.println("Generated Answer ID: " + savedAnswer.getAno());
+    }
+
+
 
 }

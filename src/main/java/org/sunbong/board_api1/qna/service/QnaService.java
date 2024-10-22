@@ -8,13 +8,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.sunbong.board_api1.common.dto.PageRequestDTO;
-import org.sunbong.board_api1.common.dto.PageResponseDTO;
 import org.sunbong.board_api1.common.exception.CommonExceptions;
-import org.sunbong.board_api1.product.repository.ProductRepository;
+import org.sunbong.board_api1.qna.domain.Answer;
 import org.sunbong.board_api1.qna.domain.Question;
-import org.sunbong.board_api1.qna.dto.QnaListDTO;
-import org.sunbong.board_api1.qna.dto.QnaRegisterDTO;
-import org.sunbong.board_api1.qna.repository.QnaRepository;
+import org.sunbong.board_api1.qna.dto.AnswerRegisterDTO;
+import org.sunbong.board_api1.qna.dto.QuestionListDTO;
+import org.sunbong.board_api1.qna.dto.QuestionAddDTO;
+import org.sunbong.board_api1.qna.repository.AnswerRepository;
+import org.sunbong.board_api1.qna.repository.QuestionRepository;
 
 @Service
 @Transactional
@@ -22,9 +23,10 @@ import org.sunbong.board_api1.qna.repository.QnaRepository;
 @RequiredArgsConstructor
 public class QnaService {
 
-    private final QnaRepository qnaRepository;
+    private final QuestionRepository questionRepository;
+    private final AnswerRepository answerRepository;
 
-    public Page<QnaListDTO> list(PageRequestDTO pageRequestDTO) {
+    public Page<QuestionListDTO> list(PageRequestDTO pageRequestDTO) {
 
         // 페이지 번호가 0보다 작으면 예외 발생
         if (pageRequestDTO.getPage() < 0) {
@@ -35,7 +37,43 @@ public class QnaService {
         Pageable pageable = PageRequest.of(pageRequestDTO.getPage() - 1, pageRequestDTO.getSize());
 
         // QnaRepository의 list 메서드를 호출하여 페이징 결과 얻음
-        return qnaRepository.list(pageable);
+        return questionRepository.list(pageable);
+    }
+
+    public Long registerQuestion(QuestionAddDTO dto) {
+
+        Question question = Question.builder()
+                .title(dto.getTitle())
+                .content(dto.getContent())
+                .writer(dto.getWriter())
+                .build();
+
+        if (dto.getAttachFiles() != null) {
+            dto.getAttachFiles().forEach(fileName -> question.addFile(fileName));
+        }
+
+        Question savedQuestion = questionRepository.save(question);
+
+        return savedQuestion.getQno();
+    }
+
+    @Transactional
+    public Long registerAnswer(AnswerRegisterDTO dto) {
+
+        // 질문(Question) 찾기
+        Question question = questionRepository.findById(dto.getQno())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid question ID"));
+
+
+        Answer answer = Answer.builder()
+                .content(dto.getContent())
+                .writer(dto.getWriter())
+                .question(question)  // 해당 답변이 속한 질문 설정
+                .build();
+
+        Answer savedAnswer = answerRepository.save(answer);
+
+        return savedAnswer.getAno();  // 등록된 답변의 ID 반환
     }
 
 }
