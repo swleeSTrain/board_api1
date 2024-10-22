@@ -26,7 +26,7 @@ public class Notice {
     private int priority = 0; // 공지사항 중요도
 
     @Builder.Default
-    private boolean isPinned = false; // 공지사항 고정 여부
+    private Boolean isPinned = Boolean.FALSE; // 공지사항 고정 여부
 
     private String noticeTitle;
 
@@ -39,7 +39,7 @@ public class Notice {
     private String writer;
 
     @Builder.Default
-    private NoticeStatus status = NoticeStatus.PUBLISHED; // 공지사항 상태 (기본 DRAFT)
+    private NoticeStatus status = NoticeStatus.PUBLISHED; // 공지사항 상태
 
     @CreationTimestamp
     private LocalDateTime createTime;  // 작성 시간
@@ -68,11 +68,11 @@ public class Notice {
 
     // 공지사항 고정 여부
     public void pinNotice() {
-        this.isPinned = true;
+        this.isPinned = Boolean.TRUE;  // Boolean.TRUE 사용
     }
 
     public void unpinNotice() {
-        this.isPinned = false;
+        this.isPinned = Boolean.FALSE;  // Boolean.FALSE 사용
     }
 
     // 상태를 시간에 맞게 자동으로 변경하는 메서드

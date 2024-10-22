@@ -56,9 +56,10 @@ public class NoticeService {
                 .startDate(noticeDTO.getStartDate())
                 .endDate(noticeDTO.getEndDate())
                 .priority(noticeDTO.getPriority())
-                .isPinned(noticeDTO.isPinned())
+                .isPinned(Boolean.TRUE.equals(noticeDTO.getIsPinned()))  // null 값을 안전하게
                 .writer(noticeDTO.getWriter())
                 .build();
+
 
         // 상태 업데이트
         notice.updateStatusBasedOnTime();  // 상태 업데이트 로직 호출
@@ -104,6 +105,23 @@ public class NoticeService {
         }
     }
 
+    // 조회
+    public NoticeDTO findById(Long id) {
+        Notice notice = noticeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Notice not found with ID: " + id));
+
+        return toDTO(notice);
+    }
+
+    // 삭제
+    public void delete(Long id) {
+        //존재 여부 확인 후 삭제
+        Notice notice = noticeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Notice not found with ID: " + id));
+
+        noticeRepository.delete(notice);
+    }
+
     // 엔티티에서 DTO로 변환하는 메서드
     private NoticeDTO toDTO(Notice notice) {
         return NoticeDTO.builder()
@@ -113,7 +131,7 @@ public class NoticeService {
                 .startDate(notice.getStartDate())
                 .endDate(notice.getEndDate())
                 .priority(notice.getPriority())
-                .isPinned(notice.isPinned())
+                .isPinned(Boolean.TRUE.equals(notice.getIsPinned()))
                 .writer(notice.getWriter())
                 .createTime(notice.getCreateTime())
                 .updateTime(notice.getUpdateTime())

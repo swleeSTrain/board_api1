@@ -68,19 +68,18 @@ public class NoticeSearchImpl extends QuerydslRepositorySupport implements Notic
         // Notice 엔티티를 DTO로 변환
         List<NoticeListDTO> dtoList = noticeList.stream()
                 .map(noticeEntity -> NoticeListDTO.builder()
-                        .noticeNo(noticeEntity.getNoticeNo())  // 공지사항 번호
-                        .noticeTitle(noticeEntity.getNoticeTitle())   // 공지사항 제목
-                        .noticeContent(noticeEntity.getNoticeContent()) // 공지사항 내용
-                        .writer(noticeEntity.getWriter()) // 작성자
-                        .createTime(noticeEntity.getCreateTime()) // 작성 시간
-                        .updateTime(noticeEntity.getUpdateTime()) // 수정 시간
-                        .attachDocuments(noticeEntity.getAttachDocuments() != null && !noticeEntity.getAttachDocuments().isEmpty() ? "첨부파일 있음" : "첨부파일 없음") // 첨부파일 유무만 표시
+                        .noticeNo(noticeEntity.getNoticeNo())
+                        .noticeTitle(noticeEntity.getNoticeTitle())
+                        .noticeContent(noticeEntity.getNoticeContent())
+                        .writer(noticeEntity.getWriter())
+                        .createTime(noticeEntity.getCreateTime())
+                        .updateTime(noticeEntity.getUpdateTime())
+                        .attachDocuments(noticeEntity.getAttachDocuments() != null && !noticeEntity.getAttachDocuments().isEmpty() ? "첨부파일 있음" : "첨부파일 없음")
                         .priority(noticeEntity.getPriority()) // 중요도
-                        .isPinned(noticeEntity.isPinned())    // 고정 여부
+                        .isPinned(Boolean.TRUE.equals(noticeEntity.getIsPinned()))    // 고정 여부
                         .build())
                 .collect(Collectors.toList());
 
-        // 전체 개수 계산
         long total = query.fetchCount();
 
         // PageResponseDTO로 반환

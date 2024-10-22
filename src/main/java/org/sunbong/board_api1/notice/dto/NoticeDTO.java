@@ -27,7 +27,7 @@ public class NoticeDTO {
 
     private int priority; // 공지사항 중요도
 
-    private boolean isPinned; // 공지사항 고정 여부
+    private Boolean isPinned = Boolean.FALSE; // 공지사항 고정 여부
 
     private String writer;
 

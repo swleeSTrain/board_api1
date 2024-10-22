@@ -39,6 +39,7 @@ public class NoticeController {
     @PostMapping("/add")
     public ResponseEntity<NoticeDTO> create(@RequestPart("notice") NoticeDTO noticeDTO,
                                             @RequestPart("files") List<MultipartFile> files) throws IOException {
+
         // NoticeDTO에 파일 설정
         noticeDTO.setFiles(files);
 
@@ -47,5 +48,22 @@ public class NoticeController {
 
         return ResponseEntity.ok(savedNotice);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<NoticeDTO> getNotice(@PathVariable Long id) {
+
+        NoticeDTO noticeDTO = noticeService.findById(id);
+
+        return ResponseEntity.ok(noticeDTO);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteNotice(@PathVariable Long id) {
+
+        noticeService.delete(id);
+
+        return ResponseEntity.noContent().build(); // 204 No Content 반환
+    }
+
 
 }

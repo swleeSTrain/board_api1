@@ -20,5 +20,5 @@ public class NoticeListDTO {
     private LocalDateTime updateTime;
     private String attachDocuments;
     private int priority;
-    private boolean isPinned;
+    private Boolean isPinned = Boolean.FALSE;
 }
