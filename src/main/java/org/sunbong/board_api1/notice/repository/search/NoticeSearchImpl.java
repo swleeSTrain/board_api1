@@ -44,7 +44,12 @@ public class NoticeSearchImpl extends QuerydslRepositorySupport implements Notic
         // 중요도에 따라 공지사항 고정 및 상태 업데이트
         query.where(notice.status.eq(NoticeStatus.PUBLISHED)
                 .and(document.ord.eq(0).or(document.isNull())));
-        query.orderBy(notice.isPinned.desc(), notice.priority.desc(), notice.createTime.desc());
+        query.orderBy(
+                notice.isPinned.desc(),    // 고정 여부
+                notice.priority.desc(),    // 중요도
+                notice.updateTime.desc(),  // 최근 수정 시간
+                notice.createTime.desc()   // 최근 작성 시간
+        );
 
         // 페이징 처리 적용
         JPQLQuery<Notice> pageableQuery = getQuerydsl().applyPagination(pageable, query);
@@ -64,8 +69,8 @@ public class NoticeSearchImpl extends QuerydslRepositorySupport implements Notic
         List<NoticeListDTO> dtoList = noticeList.stream()
                 .map(noticeEntity -> NoticeListDTO.builder()
                         .noticeNo(noticeEntity.getNoticeNo())  // 공지사항 번호
-                        .title(noticeEntity.getTitle())   // 공지사항 제목
-                        .content(noticeEntity.getContent()) // 공지사항 내용
+                        .noticeTitle(noticeEntity.getNoticeTitle())   // 공지사항 제목
+                        .noticeContent(noticeEntity.getNoticeContent()) // 공지사항 내용
                         .writer(noticeEntity.getWriter()) // 작성자
                         .createTime(noticeEntity.getCreateTime()) // 작성 시간
                         .updateTime(noticeEntity.getUpdateTime()) // 수정 시간

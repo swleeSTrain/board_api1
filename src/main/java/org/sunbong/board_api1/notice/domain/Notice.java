@@ -23,26 +23,23 @@ public class Notice {
     private Long noticeNo;
 
     @Builder.Default
-    private int priority = 0;//공지사항 중요도
+    private int priority = 0; // 공지사항 중요도
 
     @Builder.Default
-    private boolean isPinned = false;//공지사항 고정 여부
+    private boolean isPinned = false; // 공지사항 고정 여부
 
     private String noticeTitle;
 
     private String noticeContent;
 
-    private LocalDateTime startDate;//게시 시작
+    private LocalDateTime startDate; // 게시 시작
 
-    private LocalDateTime endDate;//게시 끝
+    private LocalDateTime endDate; // 게시 끝
 
     private String writer;
 
-    private String title;
-
-    private String content;
-
-    private NoticeStatus status; //공지사항 상태
+    @Builder.Default
+    private NoticeStatus status = NoticeStatus.PUBLISHED; // 공지사항 상태 (기본 DRAFT)
 
     @CreationTimestamp
     private LocalDateTime createTime;  // 작성 시간
@@ -50,10 +47,9 @@ public class Notice {
     @UpdateTimestamp
     private LocalDateTime updateTime;  // 수정 시간
 
-
     @ElementCollection
     @Builder.Default
-    private Set<AttachedDocument> attachDocuments =new HashSet<>();
+    private Set<AttachedDocument> attachDocuments = new HashSet<>();
 
     public void addFile(String filename) {
         attachDocuments.add(new AttachedDocument(attachDocuments.size(), filename));
@@ -70,10 +66,11 @@ public class Notice {
         return LocalDateTime.now().isAfter(startDate) && LocalDateTime.now().isBefore(endDate);
     }
 
-    //공지사항 고정 여부
+    // 공지사항 고정 여부
     public void pinNotice() {
         this.isPinned = true;
     }
+
     public void unpinNotice() {
         this.isPinned = false;
     }

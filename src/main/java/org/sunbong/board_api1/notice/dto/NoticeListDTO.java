@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class NoticeListDTO {
     private Long noticeNo;
-    private String title;
-    private String content;
+    private String noticeTitle;
+    private String noticeContent;
     private String writer;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
