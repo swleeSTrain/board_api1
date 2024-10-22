@@ -24,7 +24,7 @@ public class BoardController {
 
     private final BoardPostService boardPostService;
     //페이지읽기
-    @GetMapping("{bno}")
+    @GetMapping("/read/{bno}")
     public ResponseEntity<PageResponseDTO<BoardPostReadDTO>> readPost(
             @PathVariable("bno") Long bno,
             @Validated PageRequestDTO pageRequestDTO) {
@@ -42,14 +42,14 @@ public class BoardController {
     @PostMapping("/add")
     public ResponseEntity<Long> newPost(
             @ModelAttribute BoardPostAddDTO dto,
-            @RequestParam(value = "files", required = false)List<MultipartFile> files) {
+            @RequestParam("files")List<MultipartFile> files) {
         // 서비스 계층에서 게시글을 저장
         Long bno = boardPostService.newPost(dto, files);
         return ResponseEntity.ok(bno);  // 생성된 게시글의 번호를 응답
     }
 
     //Delete 요청으로 delflag 소프트삭제
-    @DeleteMapping("{bno}")
+    @DeleteMapping("/delete/{bno}")
     public ResponseEntity<Long> deletePost(@PathVariable("bno") Long bno) {
         // 소프트 삭제 처리
         boardPostService.softDeletePost(bno);
@@ -57,12 +57,11 @@ public class BoardController {
     }
 
     //Put 요청으로 수정
-    @PutMapping("{bno}")
+    @PutMapping("/update/{bno}")
     public ResponseEntity<Long> updatePost(@PathVariable("bno") Long bno,
                                            @ModelAttribute BoardPostAddDTO dto,
-                                           @RequestParam(value = "files", required = false)List<MultipartFile> files) {
+                                           @RequestParam("files")List<MultipartFile> files) {
         boardPostService.updatePost(bno,dto,files);
         return ResponseEntity.ok(dto.getBno());
     }
-
 }

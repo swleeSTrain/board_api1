@@ -66,15 +66,14 @@ public class BoardPostService {
     public void updatePost(Long bno, BoardPostAddDTO boardPost, List<MultipartFile> files) {
         BoardPost post = boardRepository.findById(bno)
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
-
-//        BoardPost originpost = BoardPost.builder()
-//                .bno(post.getBno())
-//                .title(post.getTitle())
-//                .author(post.getAuthor())
-//                .content(post.getContent())
-//                .createTime(post.getCreateTime())
-//                .build();
-        BoardPost update = post.toBuilder()
+        BoardPost originpost = BoardPost.builder()
+                .bno(post.getBno())
+                .title(post.getTitle())
+                .author(post.getAuthor())
+                .content(post.getContent())
+                .createTime(post.getCreateTime())
+                .build();
+        BoardPost update = originpost.toBuilder()
                 .title(boardPost.getTitle())
                 .content(boardPost.getContent())
                 .build();
@@ -105,6 +104,8 @@ public class BoardPostService {
                 .title(post.getTitle())
                 .author(post.getAuthor())
                 .content(post.getContent())
+                .createTime(post.getCreateTime())
+                .updateTime(post.getUpdateTime())
                 .delflag(true)
                 .build();
 
