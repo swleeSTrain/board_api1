@@ -23,6 +23,9 @@ public class QnaReadDTO {
     private LocalDateTime questionModifiedDate;
     private Set<String> tags;
 
+    // 첨부된 파일 이름 목록 (질문에 첨부된 파일들)
+    private Set<String> attachFiles;
+
     // 답변 관련
     private Long ano;
     private String answerContent;

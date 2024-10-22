@@ -5,22 +5,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
+import org.sunbong.board_api1.common.dto.PageRequestDTO;
+import org.sunbong.board_api1.common.dto.PageResponseDTO;
 import org.sunbong.board_api1.qna.domain.Answer;
 import org.sunbong.board_api1.qna.domain.Question;
 import org.sunbong.board_api1.qna.dto.QnaReadDTO;
 import org.sunbong.board_api1.qna.dto.QuestionListDTO;
 
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashSet;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.Mockito.when;
 
 @Log4j2
 @DataJpaTest
@@ -38,11 +31,11 @@ public class QnaRepositoryTest {
 
         Long qno = 1L; // 조회할 질문의 ID
 
-        // When: 질문과 해당하는 답변 목록 조회
-        Page<QnaReadDTO> result = qnaRepository.readByQno(qno, PageRequest.of(0, 10));
+        PageRequestDTO pageRequestDTO = PageRequestDTO.builder().page(1).size(10).build();
 
-        // Then: 결과 출력 및 검증
-        result.getContent().forEach(dto -> {
+        PageResponseDTO<QnaReadDTO> result = qnaRepository.readByQno(qno, pageRequestDTO);
+
+        result.getDtoList().forEach(dto -> {
             log.info("DTO: " + dto);
         });
     }
@@ -50,11 +43,12 @@ public class QnaRepositoryTest {
 
     @Test
     public void testList1() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<QuestionListDTO> result = questionRepository.list(pageable); // 반환 타입을 Page<QnaListDTO>로 변경
 
-        // 결과 출력
-        result.getContent().forEach(dto -> {
+        PageRequestDTO pageRequestDTO = PageRequestDTO.builder().page(1).size(10).build();
+
+        PageResponseDTO<QuestionListDTO> result = questionRepository.list(pageRequestDTO);
+
+        result.getDtoList().forEach(dto -> {
             log.info("DTO: " + dto);
         });
     }

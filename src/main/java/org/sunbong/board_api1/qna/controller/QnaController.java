@@ -2,17 +2,18 @@ package org.sunbong.board_api1.qna.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.sunbong.board_api1.common.dto.PageRequestDTO;
 import org.sunbong.board_api1.common.dto.PageResponseDTO;
-import org.sunbong.board_api1.qna.dto.AnswerRegisterDTO;
+import org.sunbong.board_api1.qna.dto.AnswerAddDTO;
 import org.sunbong.board_api1.qna.dto.QnaReadDTO;
 import org.sunbong.board_api1.qna.dto.QuestionListDTO;
 import org.sunbong.board_api1.qna.dto.QuestionAddDTO;
 import org.sunbong.board_api1.qna.service.QnaService;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/v1/qna")
@@ -47,8 +48,8 @@ public class QnaController {
         return ResponseEntity.ok(qnaService.list(requestDTO));
     }
 
-    @PostMapping("add/question")
-    public ResponseEntity<Long> registerQuestion(@RequestBody QuestionAddDTO dto) {
+    @PostMapping(value = "add/question", consumes = { "multipart/form-data" })
+    public ResponseEntity<Long> registerQuestion(@ModelAttribute QuestionAddDTO dto) throws IOException {
 
         Long qno = qnaService.registerQuestion(dto);
 
@@ -56,7 +57,7 @@ public class QnaController {
     }
 
     @PostMapping("add/answer")
-    public ResponseEntity<Long> registerAnswer(@RequestBody AnswerRegisterDTO dto) {
+    public ResponseEntity<Long> registerAnswer(@RequestBody AnswerAddDTO dto) {
 
         Long ano = qnaService.registerAnswer(dto);
 

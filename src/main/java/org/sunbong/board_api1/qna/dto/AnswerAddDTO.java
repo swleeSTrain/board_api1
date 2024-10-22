@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class AnswerRegisterDTO {
+public class AnswerAddDTO {
 
     private String content;
     private String writer;
