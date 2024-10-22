@@ -79,6 +79,37 @@ public class NoticeService {
         return toDTO(savedNotice);
     }
 
+    // 수정
+    public NoticeDTO update(Long noticeNo, NoticeDTO noticeDTO) throws IOException {
+
+        Notice notice = noticeRepository.findById(noticeNo)
+                .orElseThrow(() -> new IllegalArgumentException("Notice not found with ID: " + noticeNo));
+
+        Notice updatedNotice = notice.toBuilder()
+                .noticeTitle(noticeDTO.getNoticeTitle()) // 제목 수정
+                .noticeContent(noticeDTO.getNoticeContent()) // 내용 수정
+                .startDate(noticeDTO.getStartDate()) // 시작일 수정
+                .endDate(noticeDTO.getEndDate()) // 종료일 수정
+                .priority(noticeDTO.getPriority()) // 중요도 수정
+                .isPinned(noticeDTO.getIsPinned()) // 고정 여부 수정
+                .build();
+
+        // 파일이 있으면 첨부 파일 업데이트
+        if (noticeDTO.getFiles() != null && !noticeDTO.getFiles().isEmpty()) {
+            updatedNotice.clearFile(); // 기존 파일 삭제
+            for (MultipartFile file : noticeDTO.getFiles()) {
+                String fileName = saveFile(file);
+                updatedNotice.addFile(fileName);
+            }
+        }
+
+        updatedNotice.updateStatusBasedOnTime();
+
+        noticeRepository.save(updatedNotice);
+
+        return toDTO(updatedNotice);
+    }
+
     // 파일 저장 메서드
     private String saveFile(MultipartFile file) throws IOException {
         try {

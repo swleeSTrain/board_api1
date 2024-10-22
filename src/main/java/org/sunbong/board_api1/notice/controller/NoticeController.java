@@ -49,7 +49,7 @@ public class NoticeController {
         return ResponseEntity.ok(savedNotice);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{noticeNo}")
     public ResponseEntity<NoticeDTO> getNotice(@PathVariable Long id) {
 
         NoticeDTO noticeDTO = noticeService.findById(id);
@@ -57,12 +57,26 @@ public class NoticeController {
         return ResponseEntity.ok(noticeDTO);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{noticeNo}")
     public ResponseEntity<Void> deleteNotice(@PathVariable Long id) {
 
         noticeService.delete(id);
 
         return ResponseEntity.noContent().build(); // 204 No Content 반환
+    }
+
+    // 수정
+    @PutMapping("/{noticeNo}")
+    public ResponseEntity<NoticeDTO> updateNotice(
+            @PathVariable Long noticeNo,
+            @RequestPart("notice") NoticeDTO noticeDTO,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files) throws IOException {
+
+        noticeDTO.setFiles(files);
+
+        NoticeDTO updatedNotice = noticeService.update(noticeNo, noticeDTO);
+
+        return ResponseEntity.ok(updatedNotice);
     }
 
 
