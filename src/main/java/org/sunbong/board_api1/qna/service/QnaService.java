@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.sunbong.board_api1.common.dto.PageRequestDTO;
+import org.sunbong.board_api1.common.dto.PageResponseDTO;
 import org.sunbong.board_api1.common.exception.CommonExceptions;
 import org.sunbong.board_api1.qna.domain.Answer;
 import org.sunbong.board_api1.qna.domain.Question;
@@ -27,32 +28,32 @@ public class QnaService {
     private final QuestionRepository questionRepository;
     private final QnaRepository qnaRepository;
 
-    public Page<QnaReadDTO> readByQno(Long qno, PageRequestDTO pageRequestDTO) {
+    public PageResponseDTO<QnaReadDTO> readByQno(Long qno, PageRequestDTO pageRequestDTO) {
 
         // 페이지 번호가 0보다 작으면 예외 발생
         if (pageRequestDTO.getPage() < 0) {
             throw CommonExceptions.LIST_ERROR.get();
         }
 
-        // PageRequestDTO에서 Pageable 객체 생성
-        Pageable pageable = PageRequest.of(pageRequestDTO.getPage() - 1, pageRequestDTO.getSize());
+        // QuestionRepository 또는 QnaRepository의 readByQno 메서드를 호출하여 페이징 결과 얻음
+        PageResponseDTO<QnaReadDTO> result = qnaRepository.readByQno(qno, pageRequestDTO);
 
-        // QnaRepository의 list 메서드를 호출하여 페이징 결과 얻음
-        return qnaRepository.readByQno(qno, pageable);
+        // 결과를 그대로 반환
+        return result;
     }
 
-    public Page<QuestionListDTO> list(PageRequestDTO pageRequestDTO) {
+    public PageResponseDTO<QuestionListDTO> list(PageRequestDTO pageRequestDTO) {
 
         // 페이지 번호가 0보다 작으면 예외 발생
         if (pageRequestDTO.getPage() < 0) {
             throw CommonExceptions.LIST_ERROR.get();
         }
 
-        // PageRequestDTO에서 Pageable 객체 생성
-        Pageable pageable = PageRequest.of(pageRequestDTO.getPage() - 1, pageRequestDTO.getSize());
+        // QuestionRepository의 list 메서드를 호출하여 페이징 결과 얻음
+        PageResponseDTO<QuestionListDTO> result = questionRepository.list(pageRequestDTO);
 
-        // QnaRepository의 list 메서드를 호출하여 페이징 결과 얻음
-        return questionRepository.list(pageable);
+        // 결과를 그대로 반환
+        return result;
     }
 
     public Long registerQuestion(QuestionAddDTO dto) {

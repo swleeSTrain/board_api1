@@ -3,10 +3,10 @@ package org.sunbong.board_api1.qna.repository.search;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.JPQLQuery;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
+import org.sunbong.board_api1.common.dto.PageRequestDTO;
+import org.sunbong.board_api1.common.dto.PageResponseDTO;
 import org.sunbong.board_api1.qna.domain.QAnswer;
 import org.sunbong.board_api1.qna.domain.QQuestion;
 import org.sunbong.board_api1.qna.domain.Question;
@@ -24,13 +24,20 @@ public class QnaSearchImpl extends QuerydslRepositorySupport implements QnaSearc
     }
 
     @Override
-    public Page<QnaReadDTO> readByQno(Long qno, Pageable pageable) {
+    public PageResponseDTO<QnaReadDTO> readByQno(Long qno, PageRequestDTO pageRequestDTO) {
+
         log.info("-------------------list by qno-----------");
+
+        // Pageable 객체 생성 (PageRequestDTO를 기반으로)
+        Pageable pageable = PageRequest.of(
+                pageRequestDTO.getPage() - 1,   // 1페이지가 0부터 시작하므로 -1 적용
+                pageRequestDTO.getSize(),       // 페이지당 데이터 개수
+                Sort.by("qno").descending()     // 정렬 기준: qno 내림차순
+        );
 
         QQuestion question = QQuestion.question;
         QAnswer answer = QAnswer.answer;
 
-        // 질문을 기준으로 쿼리 시작
         JPQLQuery<Question> query = from(question);
         query.leftJoin(answer).on(answer.question.eq(question));
 
@@ -59,6 +66,7 @@ public class QnaSearchImpl extends QuerydslRepositorySupport implements QnaSearc
 
         List<QnaReadDTO> dtoList = new ArrayList<>();
 
+        // Tuple을 QnaReadDTO로 변환
         for (Tuple tuple : results) {
             Long questionQno = tuple.get(question.qno);
             String questionTitle = tuple.get(question.title);
@@ -71,7 +79,6 @@ public class QnaSearchImpl extends QuerydslRepositorySupport implements QnaSearc
             String answerWriter = tuple.get(answer.writer);
             LocalDateTime answerCreatedDate = tuple.get(answer.createdDate);
 
-            // QnaReadDTO로 변환
             QnaReadDTO dto = QnaReadDTO.builder()
                     .qno(questionQno)
                     .questionTitle(questionTitle)
@@ -90,8 +97,12 @@ public class QnaSearchImpl extends QuerydslRepositorySupport implements QnaSearc
 
         long total = tupleQuery.fetchCount();
 
-        // Page 객체로 변환해서 반환
-        return new PageImpl<>(dtoList, pageable, total);
+        // PageResponseDTO로 변환해서 반환
+        return PageResponseDTO.<QnaReadDTO>withAll()
+                .dtoList(dtoList)
+                .totalCount(total)
+                .pageRequestDTO(pageRequestDTO)
+                .build();
     }
 
 }

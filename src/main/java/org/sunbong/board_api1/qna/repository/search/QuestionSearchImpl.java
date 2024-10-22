@@ -5,6 +5,8 @@ import com.querydsl.jpa.JPQLQuery;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
+import org.sunbong.board_api1.common.dto.PageRequestDTO;
+import org.sunbong.board_api1.common.dto.PageResponseDTO;
 import org.sunbong.board_api1.qna.domain.QAnswer;
 import org.sunbong.board_api1.qna.domain.QQuestion;
 import org.sunbong.board_api1.qna.domain.Question;
@@ -23,8 +25,15 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
     }
 
     @Override
-    public Page<QuestionListDTO> list(Pageable pageable) {
+    public PageResponseDTO<QuestionListDTO> list(PageRequestDTO pageRequestDTO) {
         log.info("-------------------list-----------");
+
+        // Pageable 객체 생성
+        Pageable pageable = PageRequest.of(
+                pageRequestDTO.getPage() - 1,
+                pageRequestDTO.getSize(),
+                Sort.by("qno").descending()
+        );
 
         QQuestion question = QQuestion.question;
         QAnswer answer = QAnswer.answer;
@@ -34,7 +43,7 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
 
         query.groupBy(question);
 
-        // 페이징 처리 및 정렬
+        // 페이징 처리 및 정렬 적용
         this.getQuerydsl().applyPagination(pageable, query);
 
         JPQLQuery<Tuple> tupleQuery = query.select(
@@ -58,7 +67,7 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
             LocalDateTime modifiedDate = tuple.get(question.modifiedDate);
             Long answerCount = tuple.get(answer.count());
 
-            // QnaListDTO로 변환
+            // QuestionListDTO로 변환
             QuestionListDTO dto = QuestionListDTO.builder()
                     .qno(qno)
                     .title(title)
@@ -73,8 +82,13 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
 
         long total = tupleQuery.fetchCount();
 
-        // Page 객체로 변환해서 반환
-        return new PageImpl<>(dtoList, pageable, total);
+        // PageResponseDTO로 변환해서 반환
+        return PageResponseDTO.<QuestionListDTO>withAll()
+                .dtoList(dtoList)
+                .totalCount(total)
+                .pageRequestDTO(pageRequestDTO)
+                .build();
     }
+
 
 }

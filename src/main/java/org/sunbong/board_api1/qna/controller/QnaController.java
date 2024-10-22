@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.sunbong.board_api1.common.dto.PageRequestDTO;
+import org.sunbong.board_api1.common.dto.PageResponseDTO;
 import org.sunbong.board_api1.qna.dto.AnswerRegisterDTO;
 import org.sunbong.board_api1.qna.dto.QnaReadDTO;
 import org.sunbong.board_api1.qna.dto.QuestionListDTO;
@@ -22,25 +23,27 @@ public class QnaController {
     private final QnaService qnaService;
 
     @GetMapping("/{qno}")
-    public ResponseEntity<Page<QnaReadDTO>> readByQuestionId(
+    public ResponseEntity<PageResponseDTO<QnaReadDTO>> readByQuestionId(
             @PathVariable("qno") Long qno,
             @Validated PageRequestDTO requestDTO
     ) {
         log.info("--------------------------Qna Controller read by qno");
         log.info("============================== qno: " + qno);
 
+        // qnaService의 메서드가 PageResponseDTO를 반환하므로 이에 맞춰서 ResponseEntity도 수정
         return ResponseEntity.ok(qnaService.readByQno(qno, requestDTO));
     }
 
 
     @GetMapping("list")
-    public ResponseEntity<Page<QuestionListDTO>> list(
+    public ResponseEntity<PageResponseDTO<QuestionListDTO>> list(
             @Validated PageRequestDTO requestDTO
     ) {
 
         log.info("--------------------------Qna Controller list");
         log.info("==============================");
 
+        // qnaService의 메서드가 PageResponseDTO를 반환하므로 이에 맞춰서 ResponseEntity도 수정
         return ResponseEntity.ok(qnaService.list(requestDTO));
     }
 
