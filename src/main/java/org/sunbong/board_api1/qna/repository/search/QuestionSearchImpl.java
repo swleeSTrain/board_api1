@@ -13,6 +13,7 @@ import org.sunbong.board_api1.qna.dto.QuestionListDTO;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Log4j2
 public class QuestionSearchImpl extends QuerydslRepositorySupport implements QuestionSearch {

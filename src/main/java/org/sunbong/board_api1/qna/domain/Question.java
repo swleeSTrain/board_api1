@@ -2,6 +2,7 @@ package org.sunbong.board_api1.qna.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -30,6 +31,11 @@ public class Question {
 
     @ElementCollection
     @Builder.Default
+    @BatchSize(size = 50)
+    private Set<String> tags = new HashSet<>();
+
+    @ElementCollection
+    @Builder.Default
     private Set<AttachFile> attachFiles = new HashSet<>();
 
     public void addFile(String filename) {
@@ -49,5 +55,12 @@ public class Question {
     @PreUpdate
     public void preUpdate() {
         modifiedDate = LocalDateTime.now(); // 수정 시 현재 시간
+    }
+
+    public void addTag(String tag) {
+        tags.add(tag);
+    }
+    public void clear() {
+        tags.clear();
     }
 }

@@ -17,4 +17,5 @@ public class QuestionAddDTO {
     private String content;
     private String writer;
     private Set<String> attachFiles;
+    private Set<String> tags;
 }

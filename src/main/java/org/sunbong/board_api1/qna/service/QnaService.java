@@ -12,9 +12,10 @@ import org.sunbong.board_api1.common.exception.CommonExceptions;
 import org.sunbong.board_api1.qna.domain.Answer;
 import org.sunbong.board_api1.qna.domain.Question;
 import org.sunbong.board_api1.qna.dto.AnswerRegisterDTO;
+import org.sunbong.board_api1.qna.dto.QnaReadDTO;
 import org.sunbong.board_api1.qna.dto.QuestionListDTO;
 import org.sunbong.board_api1.qna.dto.QuestionAddDTO;
-import org.sunbong.board_api1.qna.repository.AnswerRepository;
+import org.sunbong.board_api1.qna.repository.QnaRepository;
 import org.sunbong.board_api1.qna.repository.QuestionRepository;
 
 @Service
@@ -24,7 +25,21 @@ import org.sunbong.board_api1.qna.repository.QuestionRepository;
 public class QnaService {
 
     private final QuestionRepository questionRepository;
-    private final AnswerRepository answerRepository;
+    private final QnaRepository qnaRepository;
+
+    public Page<QnaReadDTO> readByQno(Long qno, PageRequestDTO pageRequestDTO) {
+
+        // 페이지 번호가 0보다 작으면 예외 발생
+        if (pageRequestDTO.getPage() < 0) {
+            throw CommonExceptions.LIST_ERROR.get();
+        }
+
+        // PageRequestDTO에서 Pageable 객체 생성
+        Pageable pageable = PageRequest.of(pageRequestDTO.getPage() - 1, pageRequestDTO.getSize());
+
+        // QnaRepository의 list 메서드를 호출하여 페이징 결과 얻음
+        return qnaRepository.readByQno(qno, pageable);
+    }
 
     public Page<QuestionListDTO> list(PageRequestDTO pageRequestDTO) {
 
@@ -46,6 +61,7 @@ public class QnaService {
                 .title(dto.getTitle())
                 .content(dto.getContent())
                 .writer(dto.getWriter())
+                .tags(dto.getTags())
                 .build();
 
         if (dto.getAttachFiles() != null) {
@@ -71,7 +87,7 @@ public class QnaService {
                 .question(question)  // 해당 답변이 속한 질문 설정
                 .build();
 
-        Answer savedAnswer = answerRepository.save(answer);
+        Answer savedAnswer = qnaRepository.save(answer);
 
         return savedAnswer.getAno();  // 등록된 답변의 ID 반환
     }

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Data
 @Builder
@@ -18,6 +19,7 @@ public class QuestionListDTO {
     private String writer;
     private LocalDateTime createdDate;
     private LocalDateTime modifiedDate;
+    private Set<String> tags;
 
     // 답변 개수
     private Long answerCount;

@@ -12,9 +12,15 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import org.sunbong.board_api1.qna.domain.Answer;
 import org.sunbong.board_api1.qna.domain.Question;
+import org.sunbong.board_api1.qna.dto.QnaReadDTO;
 import org.sunbong.board_api1.qna.dto.QuestionListDTO;
 
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.HashSet;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.Mockito.when;
 
 @Log4j2
 @DataJpaTest
@@ -25,7 +31,22 @@ public class QnaRepositoryTest {
     private QuestionRepository questionRepository;
 
     @Autowired
-    private AnswerRepository answerRepository;
+    private QnaRepository qnaRepository;
+
+    @Test
+    public void testRead() {
+
+        Long qno = 1L; // 조회할 질문의 ID
+
+        // When: 질문과 해당하는 답변 목록 조회
+        Page<QnaReadDTO> result = qnaRepository.readByQno(qno, PageRequest.of(0, 10));
+
+        // Then: 결과 출력 및 검증
+        result.getContent().forEach(dto -> {
+            log.info("DTO: " + dto);
+        });
+    }
+
 
     @Test
     public void testList1() {
@@ -73,7 +94,7 @@ public class QnaRepositoryTest {
                 .question(question)  // 해당 질문에 대한 답변으로 설정
                 .build();
 
-        Answer savedAnswer = answerRepository.save(answer);
+        Answer savedAnswer = qnaRepository.save(answer);
 
         System.out.println("Generated Answer ID: " + savedAnswer.getAno());
     }
