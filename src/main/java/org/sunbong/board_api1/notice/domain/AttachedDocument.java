@@ -1,4 +1,6 @@
-package org.sunbong.board_api1.qna.domain;
+
+package org.sunbong.board_api1.notice.domain;
+
 
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
@@ -11,7 +13,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class AttachFile {
+public class AttachedDocument {
 
     private int ord;
     private String fileName;
