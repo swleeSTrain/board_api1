@@ -93,7 +93,6 @@ public class QuestionService {
     }
 
 
-
     // 질문 삭제
     public Long delete(Long id) {
 
