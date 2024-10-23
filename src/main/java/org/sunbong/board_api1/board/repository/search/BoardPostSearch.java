@@ -9,7 +9,7 @@ import org.sunbong.board_api1.board.domain.BoardPost;
 import org.sunbong.board_api1.board.dto.BoardPostListDTO;
 
 public interface BoardPostSearch {
-    Page<BoardPost>boardlist(Pageable pageable);
+
     PageResponseDTO<BoardPostListDTO> listByBno(PageRequestDTO requestDTO);
-    PageResponseDTO<BoardPostReadDTO> readByBno(Long Bno, PageRequestDTO pageRequestDTO);
+    PageResponseDTO<BoardPostReadDTO> readByBno(Long bno, PageRequestDTO pageRequestDTO);
 }

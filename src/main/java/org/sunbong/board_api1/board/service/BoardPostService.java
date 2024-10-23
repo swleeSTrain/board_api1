@@ -66,6 +66,7 @@ public class BoardPostService {
     public void updatePost(Long bno, BoardPostAddDTO boardPost, List<MultipartFile> files) {
         BoardPost post = boardRepository.findById(bno)
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+
         BoardPost originpost = BoardPost.builder()
                 .bno(post.getBno())
                 .title(post.getTitle())
