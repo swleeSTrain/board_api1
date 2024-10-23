@@ -20,4 +20,8 @@ public class PageRequestDTO {
     @Min(value = 10, message = "10도 없어")
     @Max(value = 100, message = "cannot over 100")
     private int size = 10;
+
+    private String keyword; // 검색어 필드 추가
+
+    private String type; // 검색 타입 필드 추가
 }

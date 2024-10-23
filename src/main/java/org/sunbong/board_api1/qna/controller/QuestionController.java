@@ -41,7 +41,6 @@ public class QuestionController {
         log.info("--------------------------Qna Controller list");
         log.info("==============================");
 
-        // qnaService의 메서드가 PageResponseDTO를 반환하므로 이에 맞춰서 ResponseEntity도 수정
         return ResponseEntity.ok(questionService.list(requestDTO));
     }
 

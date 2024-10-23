@@ -27,9 +27,9 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
 
     @Override
     public PageResponseDTO<QuestionListDTO> list(PageRequestDTO pageRequestDTO) {
-        log.info("-------------------list-----------");
 
-        // Pageable 객체 생성
+        log.info("-------------------list with search-----------");
+
         Pageable pageable = PageRequest.of(
                 pageRequestDTO.getPage() - 1,
                 pageRequestDTO.getSize(),
@@ -41,6 +41,26 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
 
         JPQLQuery<Question> query = from(question);
         query.leftJoin(answer).on(answer.question.eq(question));
+
+        // 검색 조건 추가
+        String keyword = pageRequestDTO.getKeyword();
+        String type = pageRequestDTO.getType(); // 검색 타입 (title, content, writer)
+
+        if (keyword != null && type != null) {
+            if (type.equals("title")) {
+                query.where(question.title.containsIgnoreCase(keyword));
+            } else if (type.equals("content")) {
+                query.where(question.content.containsIgnoreCase(keyword));
+            } else if (type.equals("writer")) {
+                query.where(question.writer.containsIgnoreCase(keyword));
+            } else if (type.equals("all")) { // 제목, 내용, 작성자 모두 검색
+                query.where(
+                        question.title.containsIgnoreCase(keyword)
+                                .or(question.content.containsIgnoreCase(keyword))
+                                .or(question.writer.containsIgnoreCase(keyword))
+                );
+            }
+        }
 
         query.groupBy(question);
 
@@ -90,6 +110,5 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
                 .pageRequestDTO(pageRequestDTO)
                 .build();
     }
-
 
 }
