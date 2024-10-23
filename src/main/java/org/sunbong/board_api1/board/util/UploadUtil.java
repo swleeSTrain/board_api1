@@ -20,7 +20,12 @@ public class UploadUtil {
 
         // 저장할 파일 객체 생성
         File saveFile = new File(folder, savedFileName);
-
+        if (!saveFile.getParentFile().exists()) {
+            boolean created = saveFile.getParentFile().mkdirs();
+            if (!created) {
+                throw new RuntimeException("업로드 폴더를 생성할 수 없습니다: " + folder);
+            }
+        }
         // 결과를 저장할 Map 생성
         Map<String, String> result = new HashMap<>();
 
@@ -51,4 +56,5 @@ public class UploadUtil {
             throw new RuntimeException("파일 또는 썸네일 처리 실패", e);
         }
     }
+
 }
