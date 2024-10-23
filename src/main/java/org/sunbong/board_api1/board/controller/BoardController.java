@@ -24,7 +24,7 @@ public class BoardController {
 
     private final BoardPostService boardPostService;
     //페이지읽기
-    @GetMapping("/read/{bno}")
+    @GetMapping("{bno}")
     public ResponseEntity<PageResponseDTO<BoardPostReadDTO>> readPost(
             @PathVariable("bno") Long bno,
             @Validated PageRequestDTO pageRequestDTO) {
@@ -49,7 +49,7 @@ public class BoardController {
     }
 
     //Delete 요청으로 delflag 소프트삭제
-    @DeleteMapping("/delete/{bno}")
+    @DeleteMapping("{bno}")
     public ResponseEntity<Long> deletePost(@PathVariable("bno") Long bno) {
         // 소프트 삭제 처리
         boardPostService.softDeletePost(bno);
@@ -57,7 +57,7 @@ public class BoardController {
     }
 
     //Put 요청으로 수정
-    @PutMapping("/update/{bno}")
+    @PutMapping("{bno}")
     public ResponseEntity<Long> updatePost(@PathVariable("bno") Long bno,
                                            @ModelAttribute BoardPostAddDTO dto,
                                            @RequestParam("files")List<MultipartFile> files) {
