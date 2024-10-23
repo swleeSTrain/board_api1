@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport
 import org.sunbong.board_api1.common.dto.PageRequestDTO;
 import org.sunbong.board_api1.common.dto.PageResponseDTO;
 import org.sunbong.board_api1.qna.domain.QAnswer;
-import org.sunbong.board_api1.qna.domain.QAttachFile;
+import org.sunbong.board_api1.qna.domain.QAttachFileQna;
 import org.sunbong.board_api1.qna.domain.QQuestion;
 import org.sunbong.board_api1.qna.domain.Question;
 import org.sunbong.board_api1.qna.dto.QnaReadDTO;
@@ -36,7 +36,7 @@ public class AnswerSearchImpl extends QuerydslRepositorySupport implements Answe
 
         QQuestion question = QQuestion.question;
         QAnswer answer = QAnswer.answer;
-        QAttachFile attachFile = QAttachFile.attachFile;
+        QAttachFileQna attachFile = QAttachFileQna.attachFileQna;
 
         JPQLQuery<Question> query = from(question);
         query.leftJoin(answer).on(answer.question.eq(question));
