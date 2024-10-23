@@ -36,11 +36,10 @@ public class Question {
 
     @ElementCollection
     @Builder.Default
-    private Set<AttachFile> attachFiles = new HashSet<>();
-    //dfd
+    private Set<AttachFileQna> attachFiles = new HashSet<>();
 
     public void addFile(String filename) {
-        attachFiles.add(new AttachFile(attachFiles.size(), filename));
+        attachFiles.add(new AttachFileQna(attachFiles.size(), filename));
     }
 
     public void clearFiles() {
