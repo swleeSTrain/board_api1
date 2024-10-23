@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -20,7 +21,8 @@ public class BoardPostReadDTO {
     private String author;
 
     private String content;
-
+    private LocalDateTime createTime;
+    private LocalDateTime updateTime;
     private List<String> filename; // 첨부파일 목록을 문자열 리스트로 처리
     private List<String> fileUrls;
 

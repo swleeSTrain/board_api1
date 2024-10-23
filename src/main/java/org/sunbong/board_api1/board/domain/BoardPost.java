@@ -2,6 +2,7 @@ package org.sunbong.board_api1.board.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -36,6 +37,7 @@ public class BoardPost {
 
     @ElementCollection
     @Builder.Default
+    @BatchSize(size = 10)
     private Set<BoardAttachFile> boardAttachFiles = new HashSet<>();
 
     public void addBoardAttachFile(String fileName) {
