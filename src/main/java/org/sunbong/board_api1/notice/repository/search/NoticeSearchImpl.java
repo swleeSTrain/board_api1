@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Log4j2
-public class NoticeSearchImpl extends QuerydslRepositorySupport implements NoticeSearch {
+public class    NoticeSearchImpl extends QuerydslRepositorySupport implements NoticeSearch {
 
     public NoticeSearchImpl() {
         super(Notice.class);

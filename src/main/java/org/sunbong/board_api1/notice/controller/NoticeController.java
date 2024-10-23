@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.sunbong.board_api1.common.dto.PageRequestDTO;
@@ -27,7 +28,7 @@ public class NoticeController {
     // 공지사항 목록 (페이징 포함)
     @GetMapping("/list")
     public ResponseEntity<PageResponseDTO<NoticeListDTO>> list(
-            @Valid PageRequestDTO pageRequestDTO, BindingResult bindingResult) {
+            @Validated PageRequestDTO pageRequestDTO, BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
@@ -81,7 +82,7 @@ public class NoticeController {
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String content,
             @RequestParam(required = false) String writer,
-            @Valid PageRequestDTO pageRequestDTO, // @Valid 다음에 BindingResult가 와야 함
+            @Validated @ModelAttribute PageRequestDTO pageRequestDTO,
             BindingResult bindingResult) {
 
         // 유효성 검사 실패 시 에러 반환
