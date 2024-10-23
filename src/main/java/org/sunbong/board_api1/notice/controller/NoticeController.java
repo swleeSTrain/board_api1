@@ -15,7 +15,7 @@ import org.sunbong.board_api1.notice.service.NoticeService;
 
 import java.io.IOException;
 import java.util.List;
-@CrossOrigin(origins = "http://localhost:5173")
+
 @RestController
 @RequestMapping("/api/v1/notice")
 @Log4j2
