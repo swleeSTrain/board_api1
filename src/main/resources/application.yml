@@ -5,9 +5,9 @@ spring:
     sta
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://10.10.10.54:13306/vgdb
-    username: vgdbuser
-    password: vgdbuser
+    url: jdbc:mariadb://localhost:3306/bootdb2
+    username: bootdb2user
+    password: bootdb2user
 
     hikari:
       minimum-idle: 2

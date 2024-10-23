@@ -11,6 +11,7 @@ import org.sunbong.board_api1.board.domain.BoardPost;;
 import org.sunbong.board_api1.board.domain.QBoardPost;
 import org.sunbong.board_api1.board.dto.BoardPostListDTO;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,6 +45,13 @@ public class BoardPostSearchImpl extends QuerydslRepositorySupport implements Bo
                         .bno(post.getBno())
                         .title(post.getTitle())
                         .author(post.getAuthor())
+                        .fileName(post.getBoardAttachFiles()
+                                .stream()
+                                .map(file -> file.getFileName())
+                                .filter(fileName -> fileName.startsWith("s_"))
+                                .findFirst()
+                                .map(Collections::singletonList) // 파일이 있으면 해당 파일 이름으로 리스트 생성
+                                .orElse(Collections.emptyList())) // 파일이 없으면 빈 리스트 반환
                         .build())
                 .collect(Collectors.toList());
 
