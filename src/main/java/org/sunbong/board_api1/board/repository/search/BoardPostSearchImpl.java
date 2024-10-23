@@ -21,25 +21,6 @@ public class BoardPostSearchImpl extends QuerydslRepositorySupport implements Bo
     }
 
     @Override
-    public Page<BoardPost> boardlist(Pageable pageable) {
-        log.info("-----------boardlist------------");
-        QBoardPost qBoardPost = QBoardPost.boardPost;
-        JPQLQuery<BoardPost> query = from(qBoardPost)
-                .where(qBoardPost.delflag.eq(false));
-
-        this.getQuerydsl().applyPagination(pageable, query);
-        JPQLQuery<BoardPost> tupleQuery =
-                query.select(
-                        qBoardPost
-                );
-
-        // QueryDSL로 쿼리 실행
-        List<BoardPost> resultList =tupleQuery.fetch();
-        long total = tupleQuery.fetchCount();
-        return new PageImpl<>(resultList, pageable, total);
-    }
-
-    @Override
     public PageResponseDTO<BoardPostListDTO> listByBno(PageRequestDTO pageRequestDTO) {
         // Pageable 객체 생성 (PageRequestDTO에서 페이지 정보 및 정렬 정보 가져옴)
         Pageable pageable = PageRequest.of(
