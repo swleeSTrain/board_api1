@@ -10,7 +10,7 @@ import java.util.*;
 
 @Log4j2
 public class UploadUtil {
-    private final static String folder = "C:\\uploads\\";
+    private final static String folder = "C:\\upload\\";
 
     public static Map<String, String> saveFileAndCreateThumbnail(MultipartFile file) {
         // 원본 파일명

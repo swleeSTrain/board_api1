@@ -18,7 +18,7 @@ import java.nio.file.Files;
 @Log4j2
 public class BoardFileController {
 
-    private final static String folder = "C:\\uploads\\";
+    private final static String folder = "C:\\upload\\";
 
     @GetMapping("/api/v1/files/{filename}")
     public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
