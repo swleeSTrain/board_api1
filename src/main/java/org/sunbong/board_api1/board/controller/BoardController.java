@@ -60,8 +60,9 @@ public class BoardController {
     @PutMapping("{bno}")
     public ResponseEntity<Long> updatePost(@PathVariable("bno") Long bno,
                                            @ModelAttribute BoardPostAddDTO dto,
-                                           @RequestParam("files")List<MultipartFile> files) {
+                                           @RequestParam(value = "files", required = false)List<MultipartFile> files) {
         boardPostService.updatePost(bno,dto,files);
         return ResponseEntity.ok(dto.getBno());
     }
+
 }

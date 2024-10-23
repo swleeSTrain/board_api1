@@ -67,14 +67,14 @@ public class BoardPostService {
         BoardPost post = boardRepository.findById(bno)
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
 
-        BoardPost originpost = BoardPost.builder()
-                .bno(post.getBno())
-                .title(post.getTitle())
-                .author(post.getAuthor())
-                .content(post.getContent())
-                .createTime(post.getCreateTime())
-                .build();
-        BoardPost update = originpost.toBuilder()
+//        BoardPost originpost = BoardPost.builder()
+//                .bno(post.getBno())
+//                .title(post.getTitle())
+//                .author(post.getAuthor())
+//                .content(post.getContent())
+//                .createTime(post.getCreateTime())
+//                .build();
+        BoardPost update = post.toBuilder()
                 .title(boardPost.getTitle())
                 .content(boardPost.getContent())
                 .build();

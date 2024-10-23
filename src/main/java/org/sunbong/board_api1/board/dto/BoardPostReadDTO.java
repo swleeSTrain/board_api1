@@ -22,5 +22,6 @@ public class BoardPostReadDTO {
     private String content;
 
     private List<String> filename; // 첨부파일 목록을 문자열 리스트로 처리
+    private List<String> fileUrls;
 
 }
