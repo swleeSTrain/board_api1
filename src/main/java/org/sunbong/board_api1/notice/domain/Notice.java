@@ -2,6 +2,7 @@ package org.sunbong.board_api1.notice.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -32,10 +33,6 @@ public class Notice {
 
     private String noticeContent;
 
-    private LocalDateTime startDate; // 게시 시작
-
-    private LocalDateTime endDate; // 게시 끝
-
     private String writer;
 
     @Builder.Default
@@ -49,22 +46,29 @@ public class Notice {
 
     @ElementCollection
     @Builder.Default
+    @BatchSize(size = 100)
     private Set<AttachedDocument> attachDocuments = new HashSet<>();
 
+    // 파일 추가 메서드
     public void addFile(String filename) {
         attachDocuments.add(new AttachedDocument(attachDocuments.size(), filename));
     }
 
-    public void clearFile() {
+    // 기존 파일을 유지하면서 새 파일 추가
+    public void addFiles(Set<AttachedDocument> newFiles) {
+        attachDocuments.addAll(newFiles);
+    }
+
+    // 파일 삭제 메서드 (선택적으로 특정 파일을 삭제할 수 있도록)
+    public void removeFile(String filename) {
+        attachDocuments.removeIf(document -> document.getFileName().equals(filename));
+    }
+
+    // 파일 전체 삭제 메서드
+    public void clearFiles() {
         attachDocuments.clear();
     }
 
-    public boolean isActiveNow() {
-        if (startDate == null || endDate == null) {
-            return false;
-        }
-        return LocalDateTime.now().isAfter(startDate) && LocalDateTime.now().isBefore(endDate);
-    }
 
     // 공지사항 고정 여부
     public void pinNotice() {
@@ -75,14 +79,4 @@ public class Notice {
         this.isPinned = Boolean.FALSE;  // Boolean.FALSE 사용
     }
 
-    // 상태를 시간에 맞게 자동으로 변경하는 메서드
-    public void updateStatusBasedOnTime() {
-        if (isActiveNow()) {
-            this.status = NoticeStatus.PUBLISHED;
-        } else if (LocalDateTime.now().isAfter(endDate)) {
-            this.status = NoticeStatus.ARCHIVED;
-        } else {
-            this.status = NoticeStatus.DRAFT;
-        }
-    }
 }

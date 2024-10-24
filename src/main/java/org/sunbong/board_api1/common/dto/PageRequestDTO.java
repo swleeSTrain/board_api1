@@ -13,11 +13,14 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PageRequestDTO {
+
     @Builder.Default
     @Min(value = 1, message = "1도 없어.")
     private int page = 1;
+
     @Builder.Default
     @Min(value = 10, message = "10도 없어")
     @Max(value = 100, message = "cannot over 100")
     private int size = 10;
+
 }
