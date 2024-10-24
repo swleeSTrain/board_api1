@@ -1,9 +1,11 @@
 package org.sunbong.board_api1.board.repository.search;
 
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.JPQLQuery;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
+import org.sunbong.board_api1.board.domain.QBoardAttachFile;
 import org.sunbong.board_api1.board.dto.BoardPostReadDTO;
 import org.sunbong.board_api1.common.dto.PageRequestDTO;
 import org.sunbong.board_api1.common.dto.PageResponseDTO;
@@ -13,6 +15,7 @@ import org.sunbong.board_api1.board.dto.BoardPostListDTO;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -23,23 +26,40 @@ public class BoardPostSearchImpl extends QuerydslRepositorySupport implements Bo
 
     @Override
     public PageResponseDTO<BoardPostListDTO> listByBno(PageRequestDTO pageRequestDTO) {
-        // Pageable 객체 생성 (PageRequestDTO에서 페이지 정보 및 정렬 정보 가져옴)
         Pageable pageable = PageRequest.of(
-                pageRequestDTO.getPage() - 1,   // 페이지 번호 (0부터 시작하므로 -1)
-                pageRequestDTO.getSize(),       // 페이지 크기
-                Sort.by("bno").descending() // bno로 정렬
+                pageRequestDTO.getPage() - 1,
+                pageRequestDTO.getSize(),
+                Sort.by("bno").descending()
         );
+
         QBoardPost qFreeBoardPost = QBoardPost.boardPost;
-        // 기본 쿼리 생성 (FreeBoardPost에서 bno 기준으로 필터링)
         JPQLQuery<BoardPost> query = from(qFreeBoardPost)
                 .where(qFreeBoardPost.delflag.eq(false));
-        // 페이징 처리 적용
+
+        // 검색 조건 추가
+        String keyword = pageRequestDTO.getKeyword();
+        String type = pageRequestDTO.getType();
+
+        if (keyword != null && type != null) {
+            if (type.equals("title")) {
+                query.where(qFreeBoardPost.title.containsIgnoreCase(keyword));
+            } else if (type.equals("content")) {
+                query.where(qFreeBoardPost.content.containsIgnoreCase(keyword));
+            } else if (type.equals("author")) {
+                query.where(qFreeBoardPost.author.containsIgnoreCase(keyword));
+            } else if (type.equals("all")) {
+                query.where(
+                        qFreeBoardPost.title.containsIgnoreCase(keyword)
+                                .or(qFreeBoardPost.content.containsIgnoreCase(keyword))
+                                .or(qFreeBoardPost.author.containsIgnoreCase(keyword))
+                );
+            }
+        }
+
         this.getQuerydsl().applyPagination(pageable, query);
 
-        // 쿼리 실행 후 결과를 가져옴
         List<BoardPost> resultList = query.fetch();
 
-        // DTO로 변환 (Entity -> DTO)
         List<BoardPostListDTO> dtoList = resultList.stream()
                 .map(post -> BoardPostListDTO.builder()
                         .bno(post.getBno())
@@ -50,15 +70,13 @@ public class BoardPostSearchImpl extends QuerydslRepositorySupport implements Bo
                                 .map(file -> file.getFileName())
                                 .filter(fileName -> fileName.startsWith("s_"))
                                 .findFirst()
-                                .map(Collections::singletonList) // 파일이 있으면 해당 파일 이름으로 리스트 생성
-                                .orElse(Collections.emptyList())) // 파일이 없으면 빈 리스트 반환
+                                .map(Collections::singletonList)
+                                .orElse(Collections.emptyList()))
                         .build())
                 .collect(Collectors.toList());
 
-        // 전체 데이터 개수 구하기
         long total = query.fetchCount();
 
-        // PageResponseDTO로 페이징 정보와 DTO 리스트 반환
         return PageResponseDTO.<BoardPostListDTO>withAll()
                 .dtoList(dtoList)
                 .totalCount(total)
@@ -66,48 +84,58 @@ public class BoardPostSearchImpl extends QuerydslRepositorySupport implements Bo
                 .build();
     }
 
+
     @Override
     public PageResponseDTO<BoardPostReadDTO> readByBno(Long bno, PageRequestDTO pageRequestDTO) {
-        log.info("--------------------------read by bno---------------------------");
-
-        Pageable pageable = PageRequest.of(
-                pageRequestDTO.getPage() - 1,
-                pageRequestDTO.getSize(),
-                Sort.by("bno").descending()
-        );
+        log.info("Reading board post by bno: {}", bno);
 
         QBoardPost qBoardPost = QBoardPost.boardPost;
+        QBoardAttachFile qBoardAttachFile = QBoardAttachFile.boardAttachFile;
 
-        JPQLQuery<BoardPost> query = from(qBoardPost)
+        // 필요한 데이터만 선택하여 조회
+        JPQLQuery<Tuple> query = from(qBoardPost)
+                .leftJoin(qBoardPost.boardAttachFiles, qBoardAttachFile)
                 .where(qBoardPost.bno.eq(bno)
-                        .and(qBoardPost.delflag.eq(false)));
+                        .and(qBoardPost.delflag.eq(false)))
+                .select(qBoardPost.bno, qBoardPost.title, qBoardPost.author, qBoardPost.content,
+                        qBoardPost.createTime, qBoardPost.updateTime, qBoardAttachFile.fileName);
 
-        List<BoardPost> resultList = query.fetch();
+        List<Tuple> resultList = query.fetch();
 
+        // DTO 변환
         List<BoardPostReadDTO> dtoList = resultList.stream()
-                .map(post -> BoardPostReadDTO.builder()
-                        .bno(post.getBno())
-                        .title(post.getTitle())
-                        .author(post.getAuthor())
-                        .content(post.getContent())
-                        .filename(post.getBoardAttachFiles() // 파일 이름만 추출
-                                .stream()
-                                .map(file -> file.getFileName())
-                                .collect(Collectors.toList()))
-                        .fileUrls(post.getBoardAttachFiles() // 파일 URL 생성
-                                .stream()
-                                .map(file -> "/api/v1/files/" + file.getFileName())  // 파일 요청 URL
-                                .collect(Collectors.toList()))
-                        .build())
-                .collect(Collectors.toList());
+                .collect(Collectors.groupingBy(
+                        tuple -> tuple.get(qBoardPost.bno),
+                        Collectors.collectingAndThen(Collectors.toList(), tuples -> {
+                            BoardPostReadDTO.BoardPostReadDTOBuilder builder = BoardPostReadDTO.builder()
+                                    .bno(tuples.get(0).get(qBoardPost.bno))
+                                    .title(tuples.get(0).get(qBoardPost.title))
+                                    .author(tuples.get(0).get(qBoardPost.author))
+                                    .content(tuples.get(0).get(qBoardPost.content))
+                                    .createTime(tuples.get(0).get(qBoardPost.createTime))
+                                    .updateTime(tuples.get(0).get(qBoardPost.updateTime));
 
-        long total = query.fetchCount();
+                            List<String> filenames = tuples.stream()
+                                    .map(tuple -> tuple.get(qBoardAttachFile.fileName))
+                                    .filter(Objects::nonNull)
+                                    .collect(Collectors.toList());
+
+                            List<String> fileUrls = filenames.stream()
+                                    .map(filename -> "/api/v1/files/" + filename)
+                                    .collect(Collectors.toList());
+
+                            return builder.filename(filenames).fileUrls(fileUrls).build();
+                        })
+                ))
+                .values().stream().collect(Collectors.toList());
 
         return PageResponseDTO.<BoardPostReadDTO>withAll()
                 .dtoList(dtoList)
-                .totalCount(total)
+                .totalCount(dtoList.size())
                 .pageRequestDTO(pageRequestDTO)
                 .build();
     }
+
+
 
 }
