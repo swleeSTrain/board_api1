@@ -39,7 +39,7 @@ public class BoardPostSearchImpl extends QuerydslRepositorySupport implements Bo
         // 검색 조건 추가
         String keyword = pageRequestDTO.getKeyword();
         String type = pageRequestDTO.getType();
-
+        // or 써서
         if (keyword != null && type != null) {
             if (type.equals("title")) {
                 query.where(qFreeBoardPost.title.containsIgnoreCase(keyword));
