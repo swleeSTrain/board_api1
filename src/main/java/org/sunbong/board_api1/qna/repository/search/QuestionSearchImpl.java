@@ -1,5 +1,6 @@
 package org.sunbong.board_api1.qna.repository.search;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.JPQLQuery;
 import lombok.extern.log4j.Log4j2;
@@ -17,6 +18,7 @@ import org.sunbong.board_api1.qna.dto.QuestionListDTO;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Log4j2
 public class QuestionSearchImpl extends QuerydslRepositorySupport implements QuestionSearch {
@@ -46,21 +48,24 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
         String keyword = pageRequestDTO.getKeyword();
         String type = pageRequestDTO.getType(); // 검색 타입 (title, content, writer)
 
+        // or 써서
+
+        // BooleanBuilder 사용하여 동적 조건 추가
+        BooleanBuilder builder = new BooleanBuilder();
+
         if (keyword != null && type != null) {
-            if (type.equals("title")) {
-                query.where(question.title.containsIgnoreCase(keyword));
-            } else if (type.equals("content")) {
-                query.where(question.content.containsIgnoreCase(keyword));
-            } else if (type.equals("writer")) {
-                query.where(question.writer.containsIgnoreCase(keyword));
-            } else if (type.equals("all")) { // 제목, 내용, 작성자 모두 검색
-                query.where(
-                        question.title.containsIgnoreCase(keyword)
-                                .or(question.content.containsIgnoreCase(keyword))
-                                .or(question.writer.containsIgnoreCase(keyword))
-                );
+            if (type.contains("title")) {
+                builder.or(question.title.containsIgnoreCase(keyword));
+            }
+            if (type.contains("content")) {
+                builder.or(question.content.containsIgnoreCase(keyword));
+            }
+            if (type.contains("writer")) {
+                builder.or(question.writer.containsIgnoreCase(keyword));
             }
         }
+
+        query.where(builder);
 
         query.groupBy(question);
 
@@ -74,6 +79,7 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
                 question.createdDate,
                 question.modifiedDate,
                 answer.count()
+//                question.tags
         );
 
         List<Tuple> results = tupleQuery.fetch();
@@ -88,7 +94,8 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
             LocalDateTime modifiedDate = tuple.get(question.modifiedDate);
             Long answerCount = tuple.get(answer.count());
 
-            // QuestionListDTO로 변환
+//            Set<String> tags = tuple.get(question.tags);
+
             QuestionListDTO dto = QuestionListDTO.builder()
                     .qno(qno)
                     .title(title)
@@ -96,6 +103,7 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
                     .createdDate(createdDate)
                     .modifiedDate(modifiedDate)
                     .answerCount(answerCount)
+//                    .tags(tags)
                     .build();
 
             dtoList.add(dto);

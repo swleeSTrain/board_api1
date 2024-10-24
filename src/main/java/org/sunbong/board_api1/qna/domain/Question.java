@@ -3,8 +3,8 @@ package org.sunbong.board_api1.qna.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
+import org.sunbong.board_api1.common.domain.BaseEntity;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,8 +13,8 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-@ToString(exclude = {"attachFiles"})
-public class Question {
+@ToString(exclude = {"attachFiles", "tags"})
+public class Question extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,9 +26,6 @@ public class Question {
 
     private String writer;
 
-    private LocalDateTime createdDate;
-    private LocalDateTime modifiedDate;
-
     @ElementCollection
     @Builder.Default
     @BatchSize(size = 50)
@@ -36,6 +33,7 @@ public class Question {
 
     @ElementCollection
     @Builder.Default
+    @BatchSize(size = 50)
     private Set<AttachFileQna> attachFiles = new HashSet<>();
 
     public void addFile(String filename) {
@@ -44,17 +42,6 @@ public class Question {
 
     public void clearFiles() {
         attachFiles.clear();
-    }
-
-    @PrePersist
-    public void prePersist() {
-        createdDate = LocalDateTime.now(); // 등록 시 현재 시간
-        modifiedDate = LocalDateTime.now();  // 등록 시 현재 시간
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        modifiedDate = LocalDateTime.now(); // 수정 시 현재 시간
     }
 
     public void addTag(String tag) {
