@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Getter
 @ToString(exclude = "boardPost")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class Comment {
+public class Comment extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,13 +23,13 @@ public class Comment {
     private String writer;
     private String content;
 
-    @CreationTimestamp
-    private LocalDateTime createTime;//생성날짜
-    @UpdateTimestamp
-    private LocalDateTime updateTime;//수정날짜
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bno")
+
+    @ManyToOne
+    @JoinColumns({
+            @JoinColumn(name = "board_bno", referencedColumnName = "bno")
+            // 필요에 따라 추가적인 컬럼을 여기에 지정합니다.
+    })
     private BoardPost boardPost;
 
 }
