@@ -42,7 +42,7 @@ public class BoardController {
     @PostMapping("/add")
     public ResponseEntity<Long> newPost(
             @ModelAttribute BoardPostAddDTO dto,
-            @RequestParam("files")List<MultipartFile> files) {
+            @RequestParam(value = "files", required = false)List<MultipartFile> files) {
         // 서비스 계층에서 게시글을 저장
         Long bno = boardPostService.newPost(dto, files);
         return ResponseEntity.ok(bno);  // 생성된 게시글의 번호를 응답
