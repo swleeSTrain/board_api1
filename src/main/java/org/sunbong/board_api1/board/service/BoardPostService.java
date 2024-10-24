@@ -105,8 +105,6 @@ public class BoardPostService {
                 .title(post.getTitle())
                 .author(post.getAuthor())
                 .content(post.getContent())
-                .createTime(post.getCreateTime())
-                .updateTime(post.getUpdateTime())
                 .delflag(true)
                 .build();
 

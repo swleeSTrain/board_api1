@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 
 @RestController
@@ -19,6 +21,35 @@ import java.nio.file.Files;
 public class BoardFileController {
 
     private final static String folder = "C:\\upload\\";
+    @GetMapping("/api/v1/files/download/{filename}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable String filename) {
+        try {
+            File file = new File(folder + File.separator + filename);
+            Resource resource = new UrlResource(file.toURI());
+
+            // 파일이 존재하는지 확인
+            if (!resource.exists()) {
+                throw new RuntimeException("파일을 찾을 수 없습니다: " + filename);
+            }
+
+            // 콘텐츠 유형 결정
+            String contentType = Files.probeContentType(file.toPath());
+            if (contentType == null) {
+                contentType = "application/octet-stream"; // 기본 콘텐츠 유형
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + URLEncoder.encode(filename, "UTF-8") + "\"")
+                    .body(resource);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("파일을 찾을 수 없습니다: " + filename, e);
+        } catch (IOException e) {
+            throw new RuntimeException("파일의 콘텐츠 유형을 결정할 수 없습니다: " + filename, e);
+        }
+    }
+
+
 
     @GetMapping("/api/v1/files/{filename}")
     public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
