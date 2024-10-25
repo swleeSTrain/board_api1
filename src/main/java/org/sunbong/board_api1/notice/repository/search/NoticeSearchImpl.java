@@ -1,22 +1,20 @@
 package org.sunbong.board_api1.notice.repository.search;
 
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPQLQuery;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
-import org.sunbong.board_api1.common.dto.PageRequestDTO;
+import org.sunbong.board_api1.common.notice.dto.NoticePageRequestDTO;
 import org.sunbong.board_api1.common.dto.PageResponseDTO;
 import org.sunbong.board_api1.notice.domain.Notice;
-import org.sunbong.board_api1.notice.domain.NoticeStatus;
-import org.sunbong.board_api1.notice.domain.QAttachedDocument;
 import org.sunbong.board_api1.notice.domain.QNotice;
-import org.sunbong.board_api1.notice.dto.NoticeListDTO;
+import org.sunbong.board_api1.notice.dto.NoticeDTO;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Log4j2
 public class NoticeSearchImpl extends QuerydslRepositorySupport implements NoticeSearch {
@@ -25,148 +23,107 @@ public class NoticeSearchImpl extends QuerydslRepositorySupport implements Notic
         super(Notice.class);
     }
 
+    private final QNotice notice = QNotice.notice;
+
+    //일반
     @Override
-    public PageResponseDTO<NoticeListDTO> noticeList(PageRequestDTO pageRequestDTO) {
-        log.info("-------------Notice List Query-------------");
+    public PageResponseDTO<NoticeDTO> notPinnedList(NoticePageRequestDTO noticePageRequestDTO) {
 
-        Pageable pageable = PageRequest.of(
-                pageRequestDTO.getPage() - 1,
-                pageRequestDTO.getSize(),
-                Sort.by("createTime").descending()
-        );
+        long pinnedCount = getPinnedCount();
 
-        QNotice notice = QNotice.notice;
-        QAttachedDocument document = QAttachedDocument.attachedDocument;
+        log.info("Pinned notices count: {}", pinnedCount);
 
-        // 검색 조건 추가
-        String searchKeyword = pageRequestDTO.getKeyword();
-        String searchType = pageRequestDTO.getType(); // 검색 타입 (T: 제목, C: 내용, W: 작성자, A: 모든 필드)
+        int adjustedSize = noticePageRequestDTO.getSize() - (int) pinnedCount;
 
-        // 고정된 공지사항 쿼리
-        List<Notice> pinnedNotices = from(notice)
-                .where(notice.isPinned.eq(true))
-                .orderBy(notice.priority.desc(), notice.updateTime.desc())
-                .fetch();
-
-        // 일반 공지사항 쿼리
-        JPQLQuery<Notice> query = from(notice)
-                //.leftJoin(notice.attachDocuments, document)
-                .where(notice.status.eq(NoticeStatus.PUBLISHED)
-                        .and(notice.isPinned.eq(false))
-                        .and(createSearchCondition(notice, searchType, searchKeyword))) // 검색 조건 적용
-                .orderBy(
-                        notice.priority.desc(),
-                        notice.updateTime.desc(),
-                        notice.createTime.desc()
-                );
+        Pageable pageable = PageRequest.of(noticePageRequestDTO.getPage() - 1, adjustedSize, Sort.by("createdDate").descending());
 
 
-        log.info("===================================");
-        log.info(query);
+        BooleanBuilder searchCondition = getSearchCondition(noticePageRequestDTO);
 
-        JPQLQuery<Notice> pageableQuery = getQuerydsl().applyPagination(pageable, query);
+        JPQLQuery<Notice> query = getNoticeQuery(false)
+                .where(searchCondition);
 
-        List<Notice> noticeList = pageableQuery.fetch();
+        this.getQuerydsl().applyPagination(pageable, query);
 
-        // 고정된 공지사항을 일반 공지사항 앞에 추가
-        List<Notice> combinedNotices = new ArrayList<>(pinnedNotices);
-        combinedNotices.addAll(noticeList);
 
-        if (combinedNotices.isEmpty()) {
-            return PageResponseDTO.<NoticeListDTO>withAll()
-                    .dtoList(new ArrayList<>())
-                    .pageRequestDTO(pageRequestDTO)
-                    .totalCount(0L)
-                    .build();
-        }
 
-        List<NoticeListDTO> dtoList = combinedNotices.stream()
-                .map(noticeEntity -> NoticeListDTO.builder()
-                        .noticeNo(noticeEntity.getNoticeNo())
-                        .noticeTitle(noticeEntity.getNoticeTitle())
-                        .noticeContent(noticeEntity.getNoticeContent())
-                        .writer(noticeEntity.getWriter())
-                        .createTime(noticeEntity.getCreateTime())
-                        .updateTime(noticeEntity.getUpdateTime())
-                        .attachDocuments(noticeEntity.getAttachDocuments() != null && !noticeEntity.getAttachDocuments().isEmpty() ? "첨부파일 있음" : "첨부파일 없음")
-                        .priority(noticeEntity.getPriority())
-                        .isPinned(Boolean.TRUE.equals(noticeEntity.getIsPinned()))
-                        .build())
-                .collect(Collectors.toList());
+        return getPageResponseDTO(query, noticePageRequestDTO);
+    }
 
-        long total = query.fetchCount();
 
-        return PageResponseDTO.<NoticeListDTO>withAll()
-                .dtoList(dtoList)
-                .pageRequestDTO(pageRequestDTO)
+    // 고정
+    @Override
+    public PageResponseDTO<NoticeDTO> pinnedList(NoticePageRequestDTO noticePageRequestDTO) {
+
+        JPQLQuery<Notice> query = getNoticeQuery(true);
+
+
+        return getPageResponseDTO(query, noticePageRequestDTO);
+    }
+
+
+
+    //고정글 개수
+    private long getPinnedCount() {
+        JPQLQuery<Notice> pinnedQuery = from(notice)
+                .where(notice.isPinned.eq(true));
+
+        return pinnedQuery.fetchCount();
+    }
+
+
+
+    // 공통
+    private PageResponseDTO<NoticeDTO> getPageResponseDTO(JPQLQuery<Notice> query, NoticePageRequestDTO noticePageRequestDTO) {
+
+        JPQLQuery<NoticeDTO> dtoQuery = query.select(
+                Projections.bean(NoticeDTO.class,
+                        notice.nno,
+                        notice.title,
+                        notice.writer
+                ));
+
+
+        List<NoticeDTO> resultList = dtoQuery.fetch();
+
+        long total = dtoQuery.fetchCount();
+
+        log.info("Query executed. Fetched {} results, total count: {}", resultList.size(), total);
+
+        return PageResponseDTO.<NoticeDTO>withAll()
+                .dtoList(resultList)
+                .noticePageRequestDTO(noticePageRequestDTO)
                 .totalCount(total)
                 .build();
     }
 
-    // 검색 조건 생성 메서드
-    private BooleanBuilder createSearchCondition(QNotice notice, String searchType, String searchKeyword) {
-        if (searchKeyword == null || searchKeyword.trim().isEmpty()) {
-            return null;
-        }
-
-        BooleanBuilder condition = new BooleanBuilder();
-
-
-        //TCW TC T
-
-
-
-        // 검색 타입에 따른 조건 추가
-//        if (searchType != null) {
-//            switch (searchType) {
-//
-//                case "T": // 제목으로 검색
-//                    condition = notice.noticeTitle.containsIgnoreCase(searchKeyword);
-//                    break;
-//
-//                case "C": // 내용으로 검색
-//                    condition = notice.noticeContent.containsIgnoreCase(searchKeyword);
-//                    break;
-//
-//                case "W": // 작성자로 검색
-//                    condition = notice.writer.containsIgnoreCase(searchKeyword);
-//                    break;
-//
-//                case "A":
-//                    condition = notice.noticeTitle.containsIgnoreCase(searchKeyword)
-//                            .or(notice.noticeContent.containsIgnoreCase(searchKeyword))
-//                            .or(notice.writer.containsIgnoreCase(searchKeyword));
-//                    break;
-//
-//                default:
-//
-//                    break;
-//            }
-//        }
-
-        if (searchType != null) {
-
-
-
-            String[] types = searchType.split(""); //[T,C,W]
-
-            for (String type : types) {
-
-                if(type.equals("T")) {
-                    condition.or(notice.noticeTitle.containsIgnoreCase(searchKeyword));
-                }else if(type.equals("C")) {
-                    condition.or(notice.noticeContent.containsIgnoreCase(searchKeyword));
-                }else if(type.equals("W")) {
-                    condition.or(notice.writer.containsIgnoreCase(searchKeyword));
-                }
-
-            }
-
-        }
-
-        return condition;
+    // 공통 JPQLQuery
+    private JPQLQuery<Notice> getNoticeQuery(boolean isPinned) {
+        return from(notice)
+                .where(notice.isPinned.eq(isPinned))
+                .orderBy(notice.nno.desc());
     }
 
+    // 검색
+    private BooleanBuilder getSearchCondition(NoticePageRequestDTO noticePageRequestDTO) {
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (noticePageRequestDTO.getKeyword() != null && !noticePageRequestDTO.getKeyword().isEmpty()) {
+            String searchType = noticePageRequestDTO.getSearchType();
+            String keyword = noticePageRequestDTO.getKeyword();
+
+            if ("title".equals(searchType)) {
+                builder.and(notice.title.containsIgnoreCase(keyword));
+            } else if ("writer".equals(searchType)) {
+                builder.and(notice.writer.containsIgnoreCase(keyword));
+            } else if ("content".equals(searchType)) {
+                builder.and(notice.content.containsIgnoreCase(keyword));
+            } else if ("titleAndWriter".equals(searchType)) {
+                builder.and(notice.title.containsIgnoreCase(keyword)
+                        .or(notice.writer.containsIgnoreCase(keyword)));
+            }
+        }
+
+        return builder;
+    }
 }
-
-

@@ -1,4 +1,4 @@
-package org.sunbong.board_api1.common.dto;
+package org.sunbong.board_api1.common.notice.dto;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -12,7 +12,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PageRequestDTO {
+public class NoticePageRequestDTO {
 
     @Builder.Default
     @Min(value = 1, message = "1도 없어.")
@@ -21,6 +21,8 @@ public class PageRequestDTO {
     @Builder.Default
     @Min(value = 10, message = "10도 없어")
     @Max(value = 100, message = "cannot over 100")
-    private int size = 10;
+    private int size = 30;
 
+    private String searchType;  // 검색 타입 ("title", "writer", "content")
+    private String keyword;
 }
