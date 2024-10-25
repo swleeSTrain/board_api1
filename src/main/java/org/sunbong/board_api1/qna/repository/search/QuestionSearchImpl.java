@@ -48,7 +48,6 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
         String keyword = pageRequestDTO.getKeyword();
         String type = pageRequestDTO.getType(); // 검색 타입 (title, content, writer)
 
-
         // BooleanBuilder 사용하여 동적 조건 추가
         BooleanBuilder builder = new BooleanBuilder();
 
