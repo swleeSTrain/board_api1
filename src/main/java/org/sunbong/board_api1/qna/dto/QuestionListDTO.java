@@ -19,6 +19,8 @@ public class QuestionListDTO {
     private String writer;
     private LocalDateTime createdDate;
     private LocalDateTime modifiedDate;
+
+    // 태그
     private Set<String> tags;
 
     // 답변 개수

@@ -2,8 +2,7 @@ package org.sunbong.board_api1.qna.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
+import org.sunbong.board_api1.common.domain.BaseEntity;
 
 @Entity
 @Builder(toBuilder = true)
@@ -11,7 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Getter
 @ToString(exclude = "question")
-public class Answer {
+public class Answer extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,21 +20,7 @@ public class Answer {
 
     private String writer;
 
-    private LocalDateTime createdDate;
-    private LocalDateTime modifiedDate;
-
     @ManyToOne(fetch = FetchType.LAZY)
     private Question question;
-
-    @PrePersist
-    public void prePersist() {
-        createdDate = LocalDateTime.now(); // 등록 시 현재 시간
-        modifiedDate = LocalDateTime.now();  // 등록 시 현재 시간
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        modifiedDate = LocalDateTime.now(); // 수정 시 현재 시간
-    }
 
 }
