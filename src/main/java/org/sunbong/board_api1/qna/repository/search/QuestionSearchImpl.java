@@ -10,15 +10,15 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.sunbong.board_api1.common.dto.PageRequestDTO;
 import org.sunbong.board_api1.common.dto.PageResponseDTO;
-import org.sunbong.board_api1.qna.domain.QAnswer;
-import org.sunbong.board_api1.qna.domain.QQuestion;
-import org.sunbong.board_api1.qna.domain.Question;
+import org.sunbong.board_api1.qna.domain.*;
+import org.sunbong.board_api1.qna.dto.AnswerListDTO;
+import org.sunbong.board_api1.qna.dto.QnaReadDTO;
 import org.sunbong.board_api1.qna.dto.QuestionListDTO;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Log4j2
 public class QuestionSearchImpl extends QuerydslRepositorySupport implements QuestionSearch {
@@ -28,7 +28,7 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
     }
 
     @Override
-    public PageResponseDTO<QuestionListDTO> list(PageRequestDTO pageRequestDTO) {
+    public PageResponseDTO<QuestionListDTO> questionList(PageRequestDTO pageRequestDTO) {
 
         log.info("-------------------list with search-----------");
 
@@ -41,15 +41,9 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
         QQuestion question = QQuestion.question;
         QAnswer answer = QAnswer.answer;
 
-        JPQLQuery<Question> query = from(question);
-        query.leftJoin(answer).on(answer.question.eq(question));
-
-        // 검색 조건 추가
-        String keyword = pageRequestDTO.getKeyword();
-        String type = pageRequestDTO.getType(); // 검색 타입 (title, content, writer)
-
-        // BooleanBuilder 사용하여 동적 조건 추가
         BooleanBuilder builder = new BooleanBuilder();
+        String keyword = pageRequestDTO.getKeyword();
+        String type = pageRequestDTO.getType();
 
         if (keyword != null && type != null) {
             if (type.contains("title")) {
@@ -63,53 +57,37 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
             }
         }
 
-        query.where(builder);
+        JPQLQuery<Question> query = from(question)
+                .leftJoin(answer).on(answer.question.eq(question))
+                .leftJoin(question.tags).fetchJoin()  // 태그 데이터에 대해 fetch join 적용
+                .where(builder);
 
-        query.groupBy(question);
+        long total = query.fetchCount();
+        getQuerydsl().applyPagination(pageable, query);
+        List<Question> questions = query.fetch();
 
-        // 페이징 처리 및 정렬 적용
-        this.getQuerydsl().applyPagination(pageable, query);
+        JPQLQuery<Tuple> countQuery = from(answer)
+                .select(answer.question.qno, answer.count())
+                .groupBy(answer.question.qno);
 
-        JPQLQuery<Tuple> tupleQuery = query.select(
-                question.qno,
-                question.title,
-                question.writer,
-                question.createdDate,
-                question.modifiedDate,
-                answer.count()
-//                question.tags
-        );
+        List<Tuple> answerCounts = countQuery.fetch();
 
-        List<Tuple> results = tupleQuery.fetch();
+        Map<Long, Long> answerCountMap = answerCounts.stream()
+                .collect(Collectors.toMap(tuple -> tuple.get(0, Long.class), tuple -> tuple.get(1, Long.class)));
 
-        List<QuestionListDTO> dtoList = new ArrayList<>();
+        List<QuestionListDTO> dtoList = questions.stream()
+                .map(q -> QuestionListDTO.builder()
+                        .qno(q.getQno())
+                        .title(q.getTitle())
+                        .content(q.getContent())
+                        .writer(q.getWriter())
+                        .createdDate(q.getCreatedDate())
+                        .modifiedDate(q.getModifiedDate())
+                        .answerCount(answerCountMap.getOrDefault(q.getQno(), 0L))
+                        .tags(q.getTags())  // 여러 태그가 포함된 상태로 유지
+                        .build())
+                .collect(Collectors.toList());
 
-        for (Tuple tuple : results) {
-            Long qno = tuple.get(question.qno);
-            String title = tuple.get(question.title);
-            String writer = tuple.get(question.writer);
-            LocalDateTime createdDate = tuple.get(question.createdDate);
-            LocalDateTime modifiedDate = tuple.get(question.modifiedDate);
-            Long answerCount = tuple.get(answer.count());
-
-//            Set<String> tags = tuple.get(question.tags);
-
-            QuestionListDTO dto = QuestionListDTO.builder()
-                    .qno(qno)
-                    .title(title)
-                    .writer(writer)
-                    .createdDate(createdDate)
-                    .modifiedDate(modifiedDate)
-                    .answerCount(answerCount)
-//                    .tags(tags)
-                    .build();
-
-            dtoList.add(dto);
-        }
-
-        long total = tupleQuery.fetchCount();
-
-        // PageResponseDTO로 변환해서 반환
         return PageResponseDTO.<QuestionListDTO>withAll()
                 .dtoList(dtoList)
                 .totalCount(total)

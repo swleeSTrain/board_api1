@@ -30,22 +30,6 @@ public class QuestionService {
     // SaveFile 의존성 주입
     private final FileUtil fileUtil;  // SaveFile 클래스 주입
 
-
-    // 조회
-    public PageResponseDTO<QnaReadDTO> readByQno(Long qno, PageRequestDTO pageRequestDTO) {
-
-        // 페이지 번호가 0보다 작으면 예외 발생
-        if (pageRequestDTO.getPage() < 0) {
-            throw CommonExceptions.LIST_ERROR.get();
-        }
-
-        // QuestionRepository 또는 QnaRepository의 readByQno 메서드를 호출하여 페이징 결과 얻음
-        PageResponseDTO<QnaReadDTO> result = answerRepository.readByQno(qno, pageRequestDTO);
-
-        // 결과를 그대로 반환
-        return result;
-    }
-
     // 이미지 불러오기
     // 저장된 파일명을 URL로 변환
     private String convertToUrl(String fileName) {
@@ -61,7 +45,7 @@ public class QuestionService {
         }
 
         // QuestionRepository의 list 메서드를 호출하여 페이징 결과 얻음
-        PageResponseDTO<QuestionListDTO> result = questionRepository.list(pageRequestDTO);
+        PageResponseDTO<QuestionListDTO> result = questionRepository.questionList(pageRequestDTO);
 
         // 결과를 그대로 반환
         return result;

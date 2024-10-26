@@ -26,14 +26,12 @@ public class Question extends BaseEntity {
 
     private String writer;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.LAZY)
     @Builder.Default
-    @BatchSize(size = 50)
     private Set<String> tags = new HashSet<>();
 
     @ElementCollection
     @Builder.Default
-    @BatchSize(size = 50)
     private Set<AttachFileQna> attachFiles = new HashSet<>();
 
     public void addFile(String filename) {
@@ -47,7 +45,7 @@ public class Question extends BaseEntity {
     public void addTag(String tag) {
         tags.add(tag);
     }
-    public void clear() {
+    public void clearTag() {
         tags.clear();
     }
 }

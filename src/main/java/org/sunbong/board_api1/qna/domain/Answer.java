@@ -2,6 +2,7 @@ package org.sunbong.board_api1.qna.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.sunbong.board_api1.common.domain.BaseEntity;
 
 @Entity
