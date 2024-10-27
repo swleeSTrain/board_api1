@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.sunbong.board_api1.notice.repository.search.SearchType;
 
 @Data
 @SuperBuilder
@@ -23,6 +24,6 @@ public class NoticePageRequestDTO {
     @Max(value = 100, message = "cannot over 100")
     private int size = 30;
 
-    private String searchType;  // 검색 타입 ("title", "writer", "content")
+    private SearchType searchType;  // 검색 타입 ("title", "writer", "content")
     private String keyword;
 }

@@ -39,8 +39,8 @@ logging:
   level:
     org:
       hibernate:
-        SQL: DEBUG
+        SQL: INFO        # SQL 쿼리 출력 수준을 INFO로 낮춤
         type:
           descriptor:
             sql:
-              BasicBinder: TRACE
+              BasicBinder: DEBUG  # 파라미터 바인딩 정보를 DEBUG로 조정

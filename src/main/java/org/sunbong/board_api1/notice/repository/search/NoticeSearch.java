@@ -6,7 +6,5 @@ import org.sunbong.board_api1.notice.dto.NoticeDTO;
 
 public interface NoticeSearch  {
 
-    PageResponseDTO<NoticeDTO> notPinnedList(NoticePageRequestDTO noticePageRequestDTO);
-
-    PageResponseDTO<NoticeDTO> pinnedList(NoticePageRequestDTO noticePageRequestDTO);
+    PageResponseDTO<NoticeDTO> getNoticesWithPinnedFirst(NoticePageRequestDTO requestDTO, SearchType searchType, String keyword);
 }
