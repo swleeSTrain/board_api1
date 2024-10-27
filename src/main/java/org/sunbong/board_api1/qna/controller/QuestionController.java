@@ -67,7 +67,7 @@ public class QuestionController {
             @PathVariable Long qno,
             @ModelAttribute QuestionAddDTO dto) throws IOException {
 
-        Long updatedQno = questionService.updateQuestion(qno, dto);
+        Long updatedQno = questionService.editQuestion(qno, dto);
 
         return ResponseEntity.ok(updatedQno);
     }

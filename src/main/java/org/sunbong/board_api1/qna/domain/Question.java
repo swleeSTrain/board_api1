@@ -14,6 +14,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Getter
 @ToString(exclude = {"attachFiles", "tags"})
+@BatchSize(size = 50)
 public class Question extends BaseEntity {
 
     @Id
@@ -28,10 +29,12 @@ public class Question extends BaseEntity {
 
     @ElementCollection(fetch = FetchType.LAZY)
     @Builder.Default
+    @BatchSize(size = 50)
     private Set<String> tags = new HashSet<>();
 
     @ElementCollection
     @Builder.Default
+    @BatchSize(size = 50)
     private Set<AttachFileQna> attachFiles = new HashSet<>();
 
     public void addFile(String filename) {
@@ -45,7 +48,21 @@ public class Question extends BaseEntity {
     public void addTag(String tag) {
         tags.add(tag);
     }
+
     public void clearTag() {
         tags.clear();
+    }
+
+    public void editQuestion(String title, String content, String writer, Set<String> tags) {
+
+        this.title = title;
+        this.content = content;
+        this.writer = writer;
+
+        // 태그 초기화 후 새로 추가
+        this.clearTag();
+        if (tags != null) {
+            tags.forEach(this::addTag);
+        }
     }
 }

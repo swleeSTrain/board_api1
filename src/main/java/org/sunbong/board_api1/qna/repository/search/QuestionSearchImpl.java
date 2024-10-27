@@ -45,6 +45,7 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
         String keyword = pageRequestDTO.getKeyword();
         String type = pageRequestDTO.getType();
 
+        // 키워드 및 타입에 대한 검색 조건 추가
         if (keyword != null && type != null) {
             if (type.contains("title")) {
                 builder.or(question.title.containsIgnoreCase(keyword));
@@ -57,15 +58,28 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
             }
         }
 
+        // 태그에 대한 검색 조건 추가 (OR 조건으로 태그 검색)
+        if (pageRequestDTO.getTags() != null && !pageRequestDTO.getTags().isEmpty()) {
+
+            BooleanBuilder tagBuilder = new BooleanBuilder();
+
+            pageRequestDTO.getTags().forEach(tag -> {
+                tagBuilder.or(question.tags.any().eq(tag));
+            });
+            builder.and(tagBuilder);
+        }
+
+        // JPQL 쿼리 구성
         JPQLQuery<Question> query = from(question)
                 .leftJoin(answer).on(answer.question.eq(question))
-                .leftJoin(question.tags).fetchJoin()  // 태그 데이터에 대해 fetch join 적용
                 .where(builder);
 
-        long total = query.fetchCount();
+        // 총 개수 계산 (distinct 추가하여 중복 제거)
+        long total = query.distinct().fetchCount();
         getQuerydsl().applyPagination(pageable, query);
         List<Question> questions = query.fetch();
 
+        // 답변 개수 계산
         JPQLQuery<Tuple> countQuery = from(answer)
                 .select(answer.question.qno, answer.count())
                 .groupBy(answer.question.qno);
@@ -75,6 +89,7 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
         Map<Long, Long> answerCountMap = answerCounts.stream()
                 .collect(Collectors.toMap(tuple -> tuple.get(0, Long.class), tuple -> tuple.get(1, Long.class)));
 
+        // QuestionListDTO 생성
         List<QuestionListDTO> dtoList = questions.stream()
                 .map(q -> QuestionListDTO.builder()
                         .qno(q.getQno())
@@ -84,15 +99,18 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
                         .createdDate(q.getCreatedDate())
                         .modifiedDate(q.getModifiedDate())
                         .answerCount(answerCountMap.getOrDefault(q.getQno(), 0L))
-                        .tags(q.getTags())  // 여러 태그가 포함된 상태로 유지
+                        .tags(q.getTags())
                         .build())
                 .collect(Collectors.toList());
 
+        // 결과 반환
         return PageResponseDTO.<QuestionListDTO>withAll()
                 .dtoList(dtoList)
                 .totalCount(total)
                 .pageRequestDTO(pageRequestDTO)
                 .build();
     }
+
+
 
 }

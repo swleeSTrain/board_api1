@@ -14,34 +14,39 @@ import org.sunbong.board_api1.qna.domain.Question;
 import org.sunbong.board_api1.qna.dto.QnaReadDTO;
 import org.sunbong.board_api1.qna.dto.QuestionListDTO;
 
+import static org.hibernate.validator.internal.util.Contracts.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 @Log4j2
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-public class QnaRepositoryTest {
+public class QuestionRepositoryTest {
 
     @Autowired
     private QuestionRepository questionRepository;
 
     @Autowired
-    private AnswerRepository qnaRepository;
+    private AnswerRepository answerRepository;
 
     @Test
-    public void testReadByQno() {
-        // Arrange
-        Long qno = 1L;  // 테스트에 맞는 qno로 설정
-        PageRequestDTO pageRequestDTO = PageRequestDTO.builder().page(1).size(10).build();
+    public void testQuestionSearch() {
+        PageRequestDTO pageRequestDTO = PageRequestDTO.builder()
+                .page(1)
+                .size(10)
+                .keyword("제목")
+                .type("title&content&writer")
+                .build();
 
-        // Act
-        PageResponseDTO<QnaReadDTO> result = questionRepository.readByQno(qno, pageRequestDTO);
+        PageResponseDTO<QuestionListDTO> result = questionRepository.questionList(pageRequestDTO);
 
+        assertNotNull(result);
+        result.getDtoList().forEach(dto -> log.info("Search Result DTO: " + dto));
     }
 
-
     @Test
-    public void testList1() {
+    public void testQuestionList() {
 
         PageRequestDTO pageRequestDTO = PageRequestDTO.builder().page(1).size(10).build();
 
@@ -55,8 +60,9 @@ public class QnaRepositoryTest {
     @Test
     @Transactional
     @Rollback(false) // 롤백 방지
-    public void testRegisterMultipleQuestions() {
+    public void testQuestionRegister() {
         for (int i = 1; i <= 100; i++) {
+
             // Question 엔티티 생성
             Question question = Question.builder()
                     .title("제목 " + i)
@@ -64,12 +70,9 @@ public class QnaRepositoryTest {
                     .writer("작성자 " + i)
                     .build();
 
-            // 태그 추가 (예시로 3개의 태그 추가)
-            question.addTag("질문" + (i % 5)); // 5개의 태그 그룹 순환
-            question.addTag("카테고리" + (i % 3)); // 3개의 카테고리 그룹 순환
-            question.addTag("주제" + (i % 4)); // 4개의 주제 그룹 순환
+            question.addTag("질문");
+            question.addTag("불만");
 
-            // 첨부 파일 추가 (예시로 각 질문에 파일 2개씩 추가)
             question.addFile("file" + i + "_1.jpg");
             question.addFile("file" + i + "_2.png");
 
@@ -78,26 +81,22 @@ public class QnaRepositoryTest {
         }
     }
 
-
+    @Test
+    @Transactional
+    @Rollback(false)
+    public void testQuestionEdit() {
+    }
 
     @Test
     @Transactional
-    @Rollback(false)  // 롤백 방지
-    public void testRegisterAnswer() {
+    @Rollback(false)
+    public void testQuestionDelete() {
+        Long qno = 1L;
+        questionRepository.deleteById(qno);
 
-        // given: 등록할 Question 엔티티 찾기
-        Question question = questionRepository.findById(1L)
-                .orElseThrow(() -> new IllegalArgumentException("Question not found"));
+        boolean exists = questionRepository.findById(qno).isPresent();
 
-        Answer answer = Answer.builder()
-                .content("답변.")
-                .writer("hi")
-                .question(question)  // 해당 질문에 대한 답변으로 설정
-                .build();
-
-        Answer savedAnswer = qnaRepository.save(answer);
-
-        System.out.println("Generated Answer ID: " + savedAnswer.getAno());
+        assertTrue(!exists, "Question should be deleted");
     }
 
 
