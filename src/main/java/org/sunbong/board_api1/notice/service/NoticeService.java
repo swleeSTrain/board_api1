@@ -2,76 +2,175 @@ package org.sunbong.board_api1.notice.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import org.sunbong.board_api1.common.dto.PageRequestDTO;
 import org.sunbong.board_api1.common.dto.PageResponseDTO;
-import org.sunbong.board_api1.common.notice.dto.NoticePageRequestDTO;
+import org.sunbong.board_api1.common.exception.CommonExceptions;
 import org.sunbong.board_api1.notice.domain.Notice;
 import org.sunbong.board_api1.notice.dto.NoticeDTO;
+import org.sunbong.board_api1.notice.dto.NoticeListDTO;
 import org.sunbong.board_api1.notice.repository.NoticeRepository;
-import org.sunbong.board_api1.notice.repository.search.SearchType;
+import org.sunbong.board_api1.notice.domain.AttachedDocument;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
 @Transactional
-@RequiredArgsConstructor
 @Log4j2
+@RequiredArgsConstructor
 public class NoticeService {
 
     private final NoticeRepository noticeRepository;
 
-    // 고정 공지사항 포함 전체 조회 메서드
-    public PageResponseDTO<NoticeDTO> getAllNoticesWithPinnedFirst(NoticePageRequestDTO requestDTO) {
-        // SearchType이 null일 경우 기본값 설정
-        SearchType searchType = requestDTO.getSearchType() != null ? requestDTO.getSearchType() : SearchType.TITLE_WRITER_CONTENT;
+    // 파일 저장 경로를 설정 파일에서 읽어옴
+    @Value("${org.sunbong.upload.path}")
+    private String uploadDir;
 
-        // repository 메서드가 요구하는 SearchType enum 타입을 그대로 전달
-        return noticeRepository.getNoticesWithPinnedFirst(requestDTO, searchType, requestDTO.getKeyword());
+
+    public PageResponseDTO<NoticeListDTO> list(PageRequestDTO pageRequestDTO) {
+
+        log.info("Fetching notice list with pagination");
+
+        if(pageRequestDTO.getPage() < 0) {
+            throw CommonExceptions.LIST_ERROR.get();
+        }
+        // NoticeSearch 인터페이스를 통해 공지사항 목록을 조회
+        PageResponseDTO<NoticeListDTO> result = noticeRepository.noticeList(pageRequestDTO);
+
+        return result;
     }
 
-    // 검색 조건에 따라 공지사항 조회 (고정 공지사항 포함)
-    public PageResponseDTO<NoticeDTO> searchNotices(SearchType searchType, String keyword, NoticePageRequestDTO requestDTO) {
-        // 만약 searchType이 null이면 기본 검색 타입 설정
-        if (searchType == null) {
-            searchType = SearchType.TITLE_WRITER_CONTENT;
+    // 등록(Create)
+    public NoticeDTO save(NoticeDTO noticeDTO) throws IOException {
+        // Notice 엔티티로 변환
+        Notice notice = Notice.builder()
+                .noticeTitle(noticeDTO.getNoticeTitle())
+                .noticeContent(noticeDTO.getNoticeContent())
+                .startDate(noticeDTO.getStartDate())
+                .endDate(noticeDTO.getEndDate())
+                .priority(noticeDTO.getPriority())
+                .isPinned(Boolean.TRUE.equals(noticeDTO.getIsPinned()))  // null 값을 안전하게
+                .writer(noticeDTO.getWriter())
+                .build();
+
+
+        // 상태 업데이트
+        notice.updateStatusBasedOnTime();  // 상태 업데이트 로직 호출
+
+        // 파일 업로드 처리
+        if (noticeDTO.getFiles() != null && !noticeDTO.getFiles().isEmpty()) {
+            for (MultipartFile file : noticeDTO.getFiles()) {
+                String fileName = saveFile(file); // 파일 저장 후 파일 이름 가져오기
+                notice.addFile(fileName); // Notice 엔티티에 파일 추가
+            }
         }
 
-        return noticeRepository.getNoticesWithPinnedFirst(requestDTO, searchType, keyword);
+        // 저장
+        Notice savedNotice = noticeRepository.save(notice);
+
+        // 저장된 엔티티를 DTO로 변환하여 반환
+        return toDTO(savedNotice);
     }
 
-    // 공지사항 등록
-    public NoticeDTO save(NoticeDTO noticeDTO) {
-        return toDTO(noticeRepository.save(noticeDTO.toEntity()));
+    // 수정
+    public NoticeDTO update(Long noticeNo, NoticeDTO noticeDTO) throws IOException {
+
+        Notice notice = noticeRepository.findById(noticeNo)
+                .orElseThrow(() -> new IllegalArgumentException("Notice not found with ID: " + noticeNo));
+
+        Notice updatedNotice = notice.toBuilder()
+                .noticeTitle(noticeDTO.getNoticeTitle()) // 제목 수정
+                .noticeContent(noticeDTO.getNoticeContent()) // 내용 수정
+                .startDate(noticeDTO.getStartDate()) // 시작일 수정
+                .endDate(noticeDTO.getEndDate()) // 종료일 수정
+                .priority(noticeDTO.getPriority()) // 중요도 수정
+                .isPinned(noticeDTO.getIsPinned()) // 고정 여부 수정
+                .build();
+
+        // 파일이 있으면 첨부 파일 업데이트
+        if (noticeDTO.getFiles() != null && !noticeDTO.getFiles().isEmpty()) {
+            updatedNotice.clearFile(); // 기존 파일 삭제
+            for (MultipartFile file : noticeDTO.getFiles()) {
+                String fileName = saveFile(file);
+                updatedNotice.addFile(fileName);
+            }
+        }
+
+        updatedNotice.updateStatusBasedOnTime();
+
+        noticeRepository.save(updatedNotice);
+
+        return toDTO(updatedNotice);
     }
 
-    // 특정 공지사항 조회
-    public NoticeDTO findById(Long nno) throws Exception {
-        return toDTO(noticeRepository.findById(nno)
-                .orElseThrow(() -> new Exception("Notice with ID " + nno + " not found.")));
+    // 파일 저장 메서드
+    private String saveFile(MultipartFile file) throws IOException {
+        try {
+            // 파일 저장 경로 설정
+            Path uploadPath = Paths.get(uploadDir);
+
+            // 디렉토리가 없으면 생성
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            // UUID로 고유한 파일 이름을 생성
+            String originalFileName = file.getOriginalFilename();
+            String fileName = UUID.randomUUID().toString() + "_" + originalFileName; // UUID 추가
+            Path filePath = uploadPath.resolve(fileName);
+
+            // 파일 저장
+            Files.copy(file.getInputStream(), filePath);
+
+            return fileName; // 고유한 파일 이름 반환
+        } catch (IOException e) {
+            log.error("파일 저장 중 오류 발생: " + file.getOriginalFilename(), e);
+            throw new IOException("파일 저장 실패", e); // 예외 처리
+        }
     }
 
-    // 공지사항 삭제
-    public void deleteById(Long nno) throws Exception {
-        Notice notice = noticeRepository.findById(nno)
-                .orElseThrow(() -> new Exception("Notice with ID " + nno + " not found."));
-        noticeRepository.delete(notice);
-    }
+    // 조회
+    public NoticeDTO findById(Long id) {
+        Notice notice = noticeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Notice not found with ID: " + id));
 
-    // 공지사항 수정 (변경 감지 사용)
-    public NoticeDTO updateNotice(Long nno, NoticeDTO updatedNoticeDTO) throws Exception {
-        Notice notice = noticeRepository.findById(nno)
-                .orElseThrow(() -> new Exception("Notice with ID " + nno + " not found."));
-        updatedNoticeDTO.toUpdatedEntity(notice);
         return toDTO(notice);
     }
 
-    // 엔티티 -> DTO 변환
+    // 삭제
+    public void delete(Long id) {
+        //존재 여부 확인 후 삭제
+        Notice notice = noticeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Notice not found with ID: " + id));
+
+        noticeRepository.delete(notice);
+    }
+
+    // 엔티티에서 DTO로 변환하는 메서드
     private NoticeDTO toDTO(Notice notice) {
         return NoticeDTO.builder()
-                .nno(notice.getNno())
-                .title(notice.getTitle())
-                .content(notice.getContent())
+                .noticeNo(notice.getNoticeNo())
+                .noticeTitle(notice.getNoticeTitle())
+                .noticeContent(notice.getNoticeContent())
+                .startDate(notice.getStartDate())
+                .endDate(notice.getEndDate())
+                .priority(notice.getPriority())
+                .isPinned(Boolean.TRUE.equals(notice.getIsPinned()))
                 .writer(notice.getWriter())
-                .isPinned(notice.getIsPinned())
+                .createTime(notice.getCreateTime())
+                .updateTime(notice.getUpdateTime())
+                .status(notice.getStatus())
+                .attachDocuments(notice.getAttachDocuments().stream()
+                        .map(AttachedDocument::getFileName)
+                        .collect(Collectors.toList())) // 첨부 파일 리스트
                 .build();
     }
 }
