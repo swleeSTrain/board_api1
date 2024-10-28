@@ -11,7 +11,6 @@ import org.sunbong.board_api1.common.domain.BaseEntity;
 @NoArgsConstructor
 @Getter
 @ToString(exclude = "question")
-@BatchSize(size = 50)
 public class Answer extends BaseEntity {
 
     @Id

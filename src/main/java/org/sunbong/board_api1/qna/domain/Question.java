@@ -14,7 +14,6 @@ import java.util.Set;
 @NoArgsConstructor
 @Getter
 @ToString(exclude = {"attachFiles", "tags"})
-@BatchSize(size = 50)
 public class Question extends BaseEntity {
 
     @Id
@@ -28,17 +27,16 @@ public class Question extends BaseEntity {
     private String writer;
 
     @ElementCollection(fetch = FetchType.LAZY)
-    @Builder.Default
-    @BatchSize(size = 50)
+    @BatchSize(size = 20)
     private Set<String> tags = new HashSet<>();
 
     @ElementCollection
     @Builder.Default
-    @BatchSize(size = 50)
-    private Set<AttachFileQna> attachFiles = new HashSet<>();
+    @BatchSize(size = 20)
+    private Set<QuestionAttachFile> attachFiles = new HashSet<>();
 
     public void addFile(String filename) {
-        attachFiles.add(new AttachFileQna(attachFiles.size(), filename));
+        attachFiles.add(new QuestionAttachFile(attachFiles.size(), filename));
     }
 
     public void clearFiles() {

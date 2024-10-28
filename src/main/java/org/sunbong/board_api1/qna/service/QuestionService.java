@@ -103,13 +103,6 @@ public class QuestionService {
         question.editQuestion(dto.getTitle(), dto.getContent(),
                 dto.getWriter(), new HashSet<>(dto.getTags()));
 
-        // 기존 파일 삭제
-        if (dto.getAttachFiles() != null && !dto.getAttachFiles().isEmpty()) {
-            for (String fileName : dto.getAttachFiles()) {
-                fileUtil.deleteFile(fileName);
-            }
-        }
-
         // 새로운 파일 추가
         if (dto.getFiles() != null && !dto.getFiles().isEmpty()) {
             for (MultipartFile file : dto.getFiles()) {
@@ -123,10 +116,5 @@ public class QuestionService {
 
         return question.getQno(); // 업데이트된 질문의 ID 반환
     }
-
-
-
-
-
 
 }

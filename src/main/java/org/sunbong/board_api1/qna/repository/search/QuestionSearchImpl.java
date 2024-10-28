@@ -41,6 +41,10 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
         QQuestion question = QQuestion.question;
         QAnswer answer = QAnswer.answer;
 
+
+        JPQLQuery<Question> query = from(question)
+                .leftJoin(answer).on(answer.question.eq(question));
+
         BooleanBuilder builder = new BooleanBuilder();
         String keyword = pageRequestDTO.getKeyword();
         String type = pageRequestDTO.getType();
@@ -70,45 +74,26 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
         }
 
         // JPQL 쿼리 구성
-        JPQLQuery<Question> query = from(question)
-                .leftJoin(answer).on(answer.question.eq(question))
-                .where(builder);
+        query.where(builder);
+
+        //group by
+        query.groupBy(question);
 
         // 총 개수 계산 (distinct 추가하여 중복 제거)
-        long total = query.distinct().fetchCount();
         getQuerydsl().applyPagination(pageable, query);
-        List<Question> questions = query.fetch();
 
-        // 답변 개수 계산
-        JPQLQuery<Tuple> countQuery = from(answer)
-                .select(answer.question.qno, answer.count())
-                .groupBy(answer.question.qno);
+        JPQLQuery<Tuple> tupleJPQLQuery =
+                query.select(question, answer.count());
 
-        List<Tuple> answerCounts = countQuery.fetch();
+        List<Tuple> tupleList = tupleJPQLQuery.fetch();
 
-        Map<Long, Long> answerCountMap = answerCounts.stream()
-                .collect(Collectors.toMap(tuple -> tuple.get(0, Long.class), tuple -> tuple.get(1, Long.class)));
+        long total = tupleJPQLQuery.fetchCount();
 
-        // QuestionListDTO 생성
-        List<QuestionListDTO> dtoList = questions.stream()
-                .map(q -> QuestionListDTO.builder()
-                        .qno(q.getQno())
-                        .title(q.getTitle())
-                        .content(q.getContent())
-                        .writer(q.getWriter())
-                        .createdDate(q.getCreatedDate())
-                        .modifiedDate(q.getModifiedDate())
-                        .answerCount(answerCountMap.getOrDefault(q.getQno(), 0L))
-                        .tags(q.getTags())
-                        .build())
-                .collect(Collectors.toList());
+        log.info(tupleList);
 
-        // 결과 반환
-        return PageResponseDTO.<QuestionListDTO>withAll()
-                .dtoList(dtoList)
-                .totalCount(total)
-                .pageRequestDTO(pageRequestDTO)
-                .build();
+        log.info("======================================================");
+
+        return null;
     }
 
 

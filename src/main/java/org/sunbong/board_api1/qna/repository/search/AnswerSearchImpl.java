@@ -34,7 +34,7 @@ public class AnswerSearchImpl extends QuerydslRepositorySupport implements Answe
         );
 
         QQuestion question = QQuestion.question;
-        QAttachFileQna attachFile = QAttachFileQna.attachFileQna;
+        QQuestionAttachFile attachFile = QQuestionAttachFile.questionAttachFile;
         QAnswer answer = QAnswer.answer;
 
         // 질문 쿼리
