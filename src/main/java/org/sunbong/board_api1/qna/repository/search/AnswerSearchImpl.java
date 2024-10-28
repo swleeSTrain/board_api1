@@ -26,6 +26,7 @@ public class AnswerSearchImpl extends QuerydslRepositorySupport implements Answe
 
     @Override
     public PageResponseDTO<QnaReadDTO> readByQno(Long qno, PageRequestDTO pageRequestDTO) {
+
         log.info("-------------------list by qno-----------");
 
         Pageable pageable = PageRequest.of(
@@ -94,14 +95,12 @@ public class AnswerSearchImpl extends QuerydslRepositorySupport implements Answe
                         tuple.get(answer.createdDate)
                 );
 
-                // 중복된 답변 추가 방지
                 if (dto.getAnswers().stream().noneMatch(a -> a.getAno().equals(answerAno))) {
                     dto.getAnswers().add(answerDto); // 답변 추가
                 }
             }
         }
 
-        // dtoMap.values()를 사용하여 dtoList에 추가
         List<QnaReadDTO> dtoList = new ArrayList<>(dtoMap.values());
         long total = tupleQuery.fetchCount();
 
