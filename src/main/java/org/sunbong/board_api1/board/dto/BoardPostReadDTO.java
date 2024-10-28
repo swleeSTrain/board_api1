@@ -18,7 +18,7 @@ public class BoardPostReadDTO {
 
     private String title;
 
-    private String author;
+    private String writer;
 
     private String content;
     private LocalDateTime createTime;

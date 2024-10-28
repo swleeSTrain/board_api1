@@ -44,8 +44,8 @@ public class BoardController {
             @ModelAttribute BoardPostAddDTO dto,
             @RequestParam(value = "files", required = false)List<MultipartFile> files) {
         // 서비스 계층에서 게시글을 저장
-        Long bno = boardPostService.newPost(dto, files);
-        return ResponseEntity.ok(bno);  // 생성된 게시글의 번호를 응답
+        Long postNo = boardPostService.newPost(dto, files).getBno();
+        return ResponseEntity.ok(postNo);  // 생성된 게시글의 번호를 응답
     }
 
     //Delete 요청으로 delflag 소프트삭제

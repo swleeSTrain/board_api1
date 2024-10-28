@@ -13,7 +13,7 @@ public class boardRepositoryTest {
     @Test
     public void insertFreeBoard() {
         BoardPost post = BoardPost.builder()
-                .title("title")
+                .title("title1")
                 .author("author")
                 .content("content")
                 .build();
