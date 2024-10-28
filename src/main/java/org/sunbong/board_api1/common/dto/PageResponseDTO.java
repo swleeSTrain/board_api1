@@ -2,7 +2,7 @@ package org.sunbong.board_api1.common.dto;
 
 import lombok.Builder;
 import lombok.Data;
-import org.sunbong.board_api1.common.notice.dto.NoticePageRequestDTO;
+import org.sunbong.board_api1.notice.dto.NoticePageRequestDTO;
 
 import java.util.List;
 import java.util.stream.Collectors;

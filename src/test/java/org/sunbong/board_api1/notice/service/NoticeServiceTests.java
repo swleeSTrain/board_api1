@@ -8,9 +8,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import org.sunbong.board_api1.common.dto.PageResponseDTO;
-import org.sunbong.board_api1.common.notice.dto.NoticePageRequestDTO;
+import org.sunbong.board_api1.notice.dto.NoticePageRequestDTO;
 import org.sunbong.board_api1.notice.dto.NoticeDTO;
-import org.sunbong.board_api1.notice.repository.search.SearchType;
+import org.sunbong.board_api1.common.util.search.SearchType;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;

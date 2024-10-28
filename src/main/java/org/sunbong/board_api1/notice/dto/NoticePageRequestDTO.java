@@ -1,4 +1,4 @@
-package org.sunbong.board_api1.common.notice.dto;
+package org.sunbong.board_api1.notice.dto;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.sunbong.board_api1.notice.repository.search.SearchType;
+import org.sunbong.board_api1.common.util.search.SearchType;
 
 @Data
 @SuperBuilder

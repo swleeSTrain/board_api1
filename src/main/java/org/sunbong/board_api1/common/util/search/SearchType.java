@@ -1,4 +1,4 @@
-package org.sunbong.board_api1.notice.repository.search;
+package org.sunbong.board_api1.common.util.search;
 
 import com.querydsl.core.BooleanBuilder;
 import org.sunbong.board_api1.notice.domain.QNotice;

@@ -5,10 +5,10 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.sunbong.board_api1.common.dto.PageResponseDTO;
-import org.sunbong.board_api1.common.notice.dto.NoticePageRequestDTO;
+import org.sunbong.board_api1.notice.dto.NoticePageRequestDTO;
 import org.sunbong.board_api1.notice.dto.NoticeDTO;
 import org.sunbong.board_api1.notice.service.NoticeService;
-import org.sunbong.board_api1.notice.repository.search.SearchType;
+import org.sunbong.board_api1.common.util.search.SearchType;
 
 @RestController
 @RequestMapping("/api/v1/notice")
