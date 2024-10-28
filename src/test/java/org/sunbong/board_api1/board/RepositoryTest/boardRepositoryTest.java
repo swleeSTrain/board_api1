@@ -14,7 +14,7 @@ public class boardRepositoryTest {
     public void insertFreeBoard() {
         BoardPost post = BoardPost.builder()
                 .title("title1")
-                .author("author")
+                .writer("writer")
                 .content("content")
                 .build();
         freeBoardRepository.save(post);
