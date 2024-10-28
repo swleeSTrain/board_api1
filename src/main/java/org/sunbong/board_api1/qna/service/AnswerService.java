@@ -23,21 +23,6 @@ public class AnswerService {
     private final AnswerRepository answerRepository;
     private final QuestionRepository questionRepository;
 
-    // 조회
-    public PageResponseDTO<QnaReadDTO> readByQno(Long qno, PageRequestDTO pageRequestDTO) {
-
-        // 페이지 번호가 0보다 작으면 예외 발생
-        if (pageRequestDTO.getPage() < 0) {
-            throw CommonExceptions.LIST_ERROR.get();
-        }
-
-        // QuestionRepository의 readByQno 메서드를 호출하여 페이징 결과를 얻음
-        PageResponseDTO<QnaReadDTO> result = answerRepository.readByQno(qno, pageRequestDTO);
-
-        // 결과를 그대로 반환
-        return result;
-    }
-
     // 답변 등록
     @Transactional
     public Long registerAnswer(AnswerAddDTO dto) {
