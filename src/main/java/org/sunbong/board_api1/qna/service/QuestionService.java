@@ -37,6 +37,22 @@ public class QuestionService {
         return "/files/" + fileName; // 웹에서 접근할 수 있는 URL 형식으로 변환
     }
 
+
+    // 조회
+    public PageResponseDTO<QnaReadDTO> readByQno(Long qno, PageRequestDTO pageRequestDTO) {
+
+        // 페이지 번호가 0보다 작으면 예외 발생
+        if (pageRequestDTO.getPage() < 0) {
+            throw CommonExceptions.LIST_ERROR.get();
+        }
+
+        // QuestionRepository의 readByQno 메서드를 호출하여 페이징 결과를 얻음
+        PageResponseDTO<QnaReadDTO> result = answerRepository.readByQno(qno, pageRequestDTO);
+
+        // 결과를 그대로 반환
+        return result;
+    }
+
     // 질문 리스트
     public PageResponseDTO<QuestionListDTO> list(PageRequestDTO pageRequestDTO) {
 

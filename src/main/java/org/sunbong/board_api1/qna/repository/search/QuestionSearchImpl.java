@@ -41,8 +41,9 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
         QQuestion question = QQuestion.question;
         QAnswer answer = QAnswer.answer;
 
-
+        // 질문 목록 조회 쿼리 답변을 leftjoin 하고 tags를 fetch join으로
         JPQLQuery<Question> query = from(question)
+                .leftJoin(question.tags).fetchJoin()
                 .leftJoin(answer).on(answer.question.eq(question));
 
         BooleanBuilder builder = new BooleanBuilder();
@@ -79,7 +80,7 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
         //group by
         query.groupBy(question);
 
-        // 총 개수 계산 (distinct 추가하여 중복 제거)
+        // 총 개수 계산
         getQuerydsl().applyPagination(pageable, query);
 
         JPQLQuery<Tuple> tupleJPQLQuery =
@@ -93,7 +94,35 @@ public class QuestionSearchImpl extends QuerydslRepositorySupport implements Que
 
         log.info("======================================================");
 
-        return null;
+        // QuestionListDTO 생성
+        List<QuestionListDTO> dtoList = tupleList.stream()
+                .map(tuple -> {
+                    Question q = tuple.get(question);
+                    long answerCount = tuple.get(answer.count());
+
+                    return QuestionListDTO.builder()
+                            .qno(q.getQno())
+                            .title(q.getTitle())
+                            .content(q.getContent())
+                            .writer(q.getWriter())
+                            .createdDate(q.getCreatedDate())
+                            .modifiedDate(q.getModifiedDate())
+                            .answerCount(answerCount)
+                            .tags(q.getTags())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        log.info("tag 문제?");
+        log.info("========================================");
+
+        // 결과 반환
+        return PageResponseDTO.<QuestionListDTO>withAll()
+                .dtoList(dtoList)
+                .totalCount(total)
+                .pageRequestDTO(pageRequestDTO)
+                .build();
+
     }
 
 }

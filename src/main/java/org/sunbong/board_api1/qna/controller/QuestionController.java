@@ -22,7 +22,6 @@ import java.io.IOException;
 public class QuestionController {
 
     private final QuestionService questionService;
-    private final AnswerService answerService;
 
     @GetMapping("/{qno}")
     public ResponseEntity<PageResponseDTO<QnaReadDTO>> readByQuestionId(
@@ -32,7 +31,7 @@ public class QuestionController {
         log.info("--------------------------Question Controller read by qno");
         log.info("============================== qno: " + qno);
 
-        return ResponseEntity.ok(answerService.readByQno(qno, requestDTO));
+        return ResponseEntity.ok(questionService.readByQno(qno, requestDTO));
     }
 
     @GetMapping("list")

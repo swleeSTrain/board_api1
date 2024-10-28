@@ -5,7 +5,9 @@ import lombok.*;
 import org.hibernate.annotations.BatchSize;
 import org.sunbong.board_api1.common.domain.BaseEntity;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -27,13 +29,15 @@ public class Question extends BaseEntity {
     private String writer;
 
     @ElementCollection(fetch = FetchType.LAZY)
+    @Builder.Default
     @BatchSize(size = 20)
     private Set<String> tags = new HashSet<>();
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.LAZY)
     @Builder.Default
-    @BatchSize(size = 20)
-    private Set<QuestionAttachFile> attachFiles = new HashSet<>();
+    @BatchSize(size = 100)
+    private List<QuestionAttachFile> attachFiles = new ArrayList<>();
+
 
     public void addFile(String filename) {
         attachFiles.add(new QuestionAttachFile(attachFiles.size(), filename));

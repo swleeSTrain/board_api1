@@ -1,5 +1,6 @@
 package org.sunbong.board_api1.qna.repository.search;
 
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.JPQLQuery;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.PageRequest;
@@ -11,8 +12,10 @@ import org.sunbong.board_api1.common.dto.PageResponseDTO;
 import org.sunbong.board_api1.qna.domain.*;
 import org.sunbong.board_api1.qna.dto.AnswerListDTO;
 import org.sunbong.board_api1.qna.dto.QnaReadDTO;
+import org.sunbong.board_api1.qna.dto.QnaReadDTO;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -25,7 +28,7 @@ public class AnswerSearchImpl extends QuerydslRepositorySupport implements Answe
     @Override
     public PageResponseDTO<QnaReadDTO> readByQno(Long qno, PageRequestDTO pageRequestDTO) {
 
-        log.info("-------------------read by qno-----------");
+        log.info("-------------------Read By Qno-----------");
 
         Pageable pageable = PageRequest.of(
                 pageRequestDTO.getPage() - 1,
@@ -34,54 +37,69 @@ public class AnswerSearchImpl extends QuerydslRepositorySupport implements Answe
         );
 
         QQuestion question = QQuestion.question;
-        QQuestionAttachFile attachFile = QQuestionAttachFile.questionAttachFile;
         QAnswer answer = QAnswer.answer;
+        QQuestionAttachFile attachFile = QQuestionAttachFile.questionAttachFile;
 
-        // 질문 쿼리
-        JPQLQuery<Question> questionQuery = from(question)
+        JPQLQuery<Question> query = from(question)
                 .leftJoin(question.attachFiles, attachFile).fetchJoin()
+                .leftJoin(question.tags).fetchJoin()
+                .leftJoin(answer).on(answer.question.eq(question))
                 .where(question.qno.eq(qno));
 
-        Question fetchedQuestion = questionQuery.fetchOne();
+        // 페이징 적용
+        getQuerydsl().applyPagination(pageable, query);
 
-        // 답변 목록 쿼리
-        JPQLQuery<Answer> answerQuery = from(answer)
-                .where(answer.question.qno.eq(qno))
-                .orderBy(answer.createdDate.desc());
+        JPQLQuery<Tuple> tupleJPQLQuery =
+                query.select(question, answer, attachFile);
 
-        this.getQuerydsl().applyPagination(pageable, answerQuery);
+        List<Tuple> tupleList = tupleJPQLQuery.fetch();
 
-        List<AnswerListDTO> answerList = answerQuery.fetch().stream()
-                .map(ans -> AnswerListDTO.builder()
-                        .ano(ans.getAno())
-                        .content(ans.getContent())
-                        .writer(ans.getWriter())
-                        .createdDate(ans.getCreatedDate())
-                        .modifiedDate(ans.getModifiedDate())
-                        .build())
-                .collect(Collectors.toList());
+        long total = tupleJPQLQuery.fetchCount();
+
+        log.info(tupleList);
+        log.info("======================================================");
 
         // QnaReadDTO 생성
-        QnaReadDTO qnaReadDTO = QnaReadDTO.builder()
-                .qno(fetchedQuestion.getQno())
-                .title(fetchedQuestion.getTitle())
-                .content(fetchedQuestion.getContent())
-                .writer(fetchedQuestion.getWriter())
-                .createdDate(fetchedQuestion.getCreatedDate())
-                .modifiedDate(fetchedQuestion.getModifiedDate())
-                .tags(fetchedQuestion.getTags()) // 태그 추가
-                .attachFiles(fetchedQuestion.getAttachFiles().stream()
-                        .map(file -> file.getFileName())
-                        .collect(Collectors.toSet()))
-                .answers(answerList)
-                .build();
+        List<QnaReadDTO> dtoList = tupleList.stream()
+                .map(tuple -> {
+                    Question q = tuple.get(question);
+                    Answer a = tuple.get(answer);
 
-        long totalAnswers = answerQuery.fetchCount();
+                    List<AnswerListDTO> answerList = (a != null) ? List.of(AnswerListDTO.builder()
+                            .ano(a.getAno())
+                            .content(a.getContent())
+                            .writer(a.getWriter())
+                            .createdDate(a.getCreatedDate())
+                            .modifiedDate(a.getModifiedDate())
+                            .build()) : List.of();
 
+                    // QuestionAttachFile의 fileName만 추출하여 Set<String>으로 변환
+                    Set<String> attachFileNames = (q.getAttachFiles() != null) ?
+                            q.getAttachFiles().stream()
+                                    .map(QuestionAttachFile::getFileName)
+                                    .collect(Collectors.toSet()) : Set.of();
+
+                    return QnaReadDTO.builder()
+                            .qno(q.getQno())
+                            .title(q.getTitle())
+                            .content(q.getContent())
+                            .writer(q.getWriter())
+                            .createdDate(q.getCreatedDate())
+                            .modifiedDate(q.getModifiedDate())
+                            .tags(q.getTags())
+                            .attachFiles(attachFileNames)
+                            .answers(answerList)
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+
+        // 결과 반환
         return PageResponseDTO.<QnaReadDTO>withAll()
-                .dtoList(List.of(qnaReadDTO)) // 단일 질문을 PageResponseDTO에 담음
-                .totalCount(totalAnswers)
+                .dtoList(dtoList)
+                .totalCount(total)
                 .pageRequestDTO(pageRequestDTO)
                 .build();
+
     }
 }
