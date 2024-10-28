@@ -8,11 +8,11 @@ import org.sunbong.board_api1.board.domain.BoardPost;
 import org.sunbong.board_api1.board.domain.Comment;
 import org.sunbong.board_api1.board.dto.CommentDTO;
 import org.sunbong.board_api1.board.dto.CommentListDTO;
-import org.sunbong.board_api1.board.repository.search.CommentSearch;
+
 import org.sunbong.board_api1.common.dto.PageRequestDTO;
 import org.sunbong.board_api1.common.dto.PageResponseDTO;
 
-import static org.junit.jupiter.api.Assertions.*;
+
 @Log4j2
 @SpringBootTest
 public class CommentRepositoryTest {
@@ -49,7 +49,6 @@ public class CommentRepositoryTest {
 
     @Test
     public void deleteComment(){
-        Comment
     }
 
 

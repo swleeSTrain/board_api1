@@ -2,11 +2,9 @@ package org.sunbong.board_api1.board.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.sunbong.board_api1.board.domain.BoardPost;
 import org.sunbong.board_api1.board.domain.Comment;
 import org.sunbong.board_api1.board.dto.CommentDTO;
 import org.sunbong.board_api1.board.dto.CommentListDTO;
-import org.sunbong.board_api1.board.repository.BoardPostRepository;
 import org.sunbong.board_api1.board.repository.CommentRepository;
 import org.sunbong.board_api1.common.dto.PageRequestDTO;
 import org.sunbong.board_api1.common.dto.PageResponseDTO;
