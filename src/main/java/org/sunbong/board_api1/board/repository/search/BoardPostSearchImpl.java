@@ -9,7 +9,7 @@ import org.sunbong.board_api1.board.domain.QBoardAttachFile;
 import org.sunbong.board_api1.board.dto.BoardPostReadDTO;
 import org.sunbong.board_api1.common.dto.PageRequestDTO;
 import org.sunbong.board_api1.common.dto.PageResponseDTO;
-import org.sunbong.board_api1.board.domain.BoardPost;;
+import org.sunbong.board_api1.board.domain.BoardPost;
 import org.sunbong.board_api1.board.domain.QBoardPost;
 import org.sunbong.board_api1.board.dto.BoardPostListDTO;
 
