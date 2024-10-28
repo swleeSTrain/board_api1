@@ -10,6 +10,7 @@ import org.sunbong.board_api1.common.dto.PageResponseDTO;
 import org.sunbong.board_api1.qna.dto.QnaReadDTO;
 import org.sunbong.board_api1.qna.dto.QuestionAddDTO;
 import org.sunbong.board_api1.qna.dto.QuestionListDTO;
+import org.sunbong.board_api1.qna.service.AnswerService;
 import org.sunbong.board_api1.qna.service.QuestionService;
 
 import java.io.IOException;
@@ -21,6 +22,7 @@ import java.io.IOException;
 public class QuestionController {
 
     private final QuestionService questionService;
+    private final AnswerService answerService;
 
     @GetMapping("/{qno}")
     public ResponseEntity<PageResponseDTO<QnaReadDTO>> readByQuestionId(
@@ -30,7 +32,7 @@ public class QuestionController {
         log.info("--------------------------Question Controller read by qno");
         log.info("============================== qno: " + qno);
 
-        return ResponseEntity.ok(questionService.readByQno(qno, requestDTO));
+        return ResponseEntity.ok(answerService.readByQno(qno, requestDTO));
     }
 
     @GetMapping("list")
@@ -65,7 +67,7 @@ public class QuestionController {
             @PathVariable Long qno,
             @ModelAttribute QuestionAddDTO dto) throws IOException {
 
-        Long updatedQno = questionService.updateQuestion(qno, dto);
+        Long updatedQno = questionService.editQuestion(qno, dto);
 
         return ResponseEntity.ok(updatedQno);
     }

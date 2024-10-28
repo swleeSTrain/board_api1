@@ -16,6 +16,7 @@ public class QuestionListDTO {
 
     private Long qno;
     private String title;
+    private String content;
     private String writer;
     private LocalDateTime createdDate;
     private LocalDateTime modifiedDate;

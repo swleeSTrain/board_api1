@@ -26,18 +26,17 @@ public class Question extends BaseEntity {
 
     private String writer;
 
-    @ElementCollection
-    @Builder.Default
-    @BatchSize(size = 50)
+    @ElementCollection(fetch = FetchType.LAZY)
+    @BatchSize(size = 20)
     private Set<String> tags = new HashSet<>();
 
     @ElementCollection
     @Builder.Default
-    @BatchSize(size = 50)
-    private Set<AttachFileQna> attachFiles = new HashSet<>();
+    @BatchSize(size = 20)
+    private Set<QuestionAttachFile> attachFiles = new HashSet<>();
 
     public void addFile(String filename) {
-        attachFiles.add(new AttachFileQna(attachFiles.size(), filename));
+        attachFiles.add(new QuestionAttachFile(attachFiles.size(), filename));
     }
 
     public void clearFiles() {
@@ -47,7 +46,21 @@ public class Question extends BaseEntity {
     public void addTag(String tag) {
         tags.add(tag);
     }
-    public void clear() {
+
+    public void clearTag() {
         tags.clear();
+    }
+
+    public void editQuestion(String title, String content, String writer, Set<String> tags) {
+
+        this.title = title;
+        this.content = content;
+        this.writer = writer;
+
+        // 태그 초기화 후 새로 추가
+        this.clearTag();
+        if (tags != null) {
+            tags.forEach(this::addTag);
+        }
     }
 }

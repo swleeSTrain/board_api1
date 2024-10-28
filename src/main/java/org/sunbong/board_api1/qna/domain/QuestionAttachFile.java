@@ -12,7 +12,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class AttachFileQna {
+public class QuestionAttachFile {
 
     private int ord;
     private String fileName;

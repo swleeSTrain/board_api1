@@ -4,9 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.sunbong.board_api1.common.dto.PageRequestDTO;
+import org.sunbong.board_api1.common.dto.PageResponseDTO;
+import org.sunbong.board_api1.common.exception.CommonExceptions;
 import org.sunbong.board_api1.qna.domain.Answer;
 import org.sunbong.board_api1.qna.domain.Question;
 import org.sunbong.board_api1.qna.dto.AnswerAddDTO;
+import org.sunbong.board_api1.qna.dto.QnaReadDTO;
 import org.sunbong.board_api1.qna.repository.AnswerRepository;
 import org.sunbong.board_api1.qna.repository.QuestionRepository;
 
@@ -18,6 +22,21 @@ public class AnswerService {
 
     private final AnswerRepository answerRepository;
     private final QuestionRepository questionRepository;
+
+    // 조회
+    public PageResponseDTO<QnaReadDTO> readByQno(Long qno, PageRequestDTO pageRequestDTO) {
+
+        // 페이지 번호가 0보다 작으면 예외 발생
+        if (pageRequestDTO.getPage() < 0) {
+            throw CommonExceptions.LIST_ERROR.get();
+        }
+
+        // QuestionRepository의 readByQno 메서드를 호출하여 페이징 결과를 얻음
+        PageResponseDTO<QnaReadDTO> result = answerRepository.readByQno(qno, pageRequestDTO);
+
+        // 결과를 그대로 반환
+        return result;
+    }
 
     // 답변 등록
     @Transactional

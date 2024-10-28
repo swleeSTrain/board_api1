@@ -17,6 +17,7 @@ import org.sunbong.board_api1.qna.repository.AnswerRepository;
 import org.sunbong.board_api1.qna.repository.QuestionRepository;
 
 import java.io.IOException;
+import java.util.HashSet;
 
 @Service
 @Transactional
@@ -29,22 +30,6 @@ public class QuestionService {
 
     // SaveFile 의존성 주입
     private final FileUtil fileUtil;  // SaveFile 클래스 주입
-
-
-    // 조회
-    public PageResponseDTO<QnaReadDTO> readByQno(Long qno, PageRequestDTO pageRequestDTO) {
-
-        // 페이지 번호가 0보다 작으면 예외 발생
-        if (pageRequestDTO.getPage() < 0) {
-            throw CommonExceptions.LIST_ERROR.get();
-        }
-
-        // QuestionRepository 또는 QnaRepository의 readByQno 메서드를 호출하여 페이징 결과 얻음
-        PageResponseDTO<QnaReadDTO> result = answerRepository.readByQno(qno, pageRequestDTO);
-
-        // 결과를 그대로 반환
-        return result;
-    }
 
     // 이미지 불러오기
     // 저장된 파일명을 URL로 변환
@@ -61,7 +46,7 @@ public class QuestionService {
         }
 
         // QuestionRepository의 list 메서드를 호출하여 페이징 결과 얻음
-        PageResponseDTO<QuestionListDTO> result = questionRepository.list(pageRequestDTO);
+        PageResponseDTO<QuestionListDTO> result = questionRepository.questionList(pageRequestDTO);
 
         // 결과를 그대로 반환
         return result;
@@ -108,40 +93,28 @@ public class QuestionService {
     }
 
     // 질문 수정
-    public Long updateQuestion(Long qno, QuestionAddDTO dto) throws IOException {
+    public Long editQuestion(Long qno, QuestionAddDTO dto) throws IOException {
+
+        // 기존 질문을 조회
         Question question = questionRepository.findById(qno)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid question ID"));
 
-        // 기존 질문을 수정
-        Question updatedQuestion = question.toBuilder()
-                .title(dto.getTitle())
-                .content(dto.getContent())
-                .tags(dto.getTags())
-                .writer(dto.getWriter())
-                .build();
-
-        // 기존 파일 삭제
-        if (dto.getAttachFiles() != null && !dto.getAttachFiles().isEmpty()) {
-            for (String fileName : dto.getAttachFiles()) {
-                fileUtil.deleteFile(fileName); // 여기에서 QnaService의 deleteFile 메서드 호출
-            }
-        }
+        // 질문 업데이트
+        question.editQuestion(dto.getTitle(), dto.getContent(),
+                dto.getWriter(), new HashSet<>(dto.getTags()));
 
         // 새로운 파일 추가
         if (dto.getFiles() != null && !dto.getFiles().isEmpty()) {
             for (MultipartFile file : dto.getFiles()) {
                 String savedFileName = fileUtil.saveFile(file);
-                updatedQuestion.addFile(savedFileName); // 새로운 파일 추가
+                question.addFile(savedFileName);
             }
         }
 
-        // 질문 업데이트
-        questionRepository.save(updatedQuestion);
+        // 질문 업데이트 (엔티티 상태 유지)
+        questionRepository.save(question); // 여기서 기존 객체를 저장합니다.
 
-        return updatedQuestion.getQno(); // 업데이트된 질문의 ID 반환
+        return question.getQno(); // 업데이트된 질문의 ID 반환
     }
-
-
-
 
 }
