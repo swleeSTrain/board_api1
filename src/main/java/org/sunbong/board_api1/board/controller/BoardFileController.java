@@ -1,5 +1,6 @@
 package org.sunbong.board_api1.board.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -8,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
@@ -17,11 +19,13 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 
 @RestController
+@RequestMapping("/api/v1/files")
 @Log4j2
+@RequiredArgsConstructor
 public class BoardFileController {
 
     private final static String folder = "C:\\upload\\";
-    @GetMapping("/api/v1/files/download/{filename}")
+    @GetMapping("download/{filename}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String filename) {
         try {
             File file = new File(folder + File.separator + filename);
@@ -51,8 +55,8 @@ public class BoardFileController {
 
 
 
-    @GetMapping("/api/v1/files/{filename}")
-    public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
+    @GetMapping("view/{filename}")
+    public ResponseEntity<Resource> viewFileImage(@PathVariable String filename) {
         try {
             // 파일을 지정된 경로에서 찾기
             File file = new File(folder + filename);

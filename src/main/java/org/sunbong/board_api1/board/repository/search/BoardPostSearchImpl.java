@@ -45,13 +45,13 @@ public class BoardPostSearchImpl extends QuerydslRepositorySupport implements Bo
                 query.where(qFreeBoardPost.title.containsIgnoreCase(keyword));
             } else if (type.equals("content")) {
                 query.where(qFreeBoardPost.content.containsIgnoreCase(keyword));
-            } else if (type.equals("author")) {
-                query.where(qFreeBoardPost.author.containsIgnoreCase(keyword));
+            } else if (type.equals("writer")) {
+                query.where(qFreeBoardPost.writer.containsIgnoreCase(keyword));
             } else if (type.equals("all")) {
                 query.where(
                         qFreeBoardPost.title.containsIgnoreCase(keyword)
                                 .or(qFreeBoardPost.content.containsIgnoreCase(keyword))
-                                .or(qFreeBoardPost.author.containsIgnoreCase(keyword))
+                                .or(qFreeBoardPost.writer.containsIgnoreCase(keyword))
                 );
             }
         }
@@ -64,7 +64,7 @@ public class BoardPostSearchImpl extends QuerydslRepositorySupport implements Bo
                 .map(post -> BoardPostListDTO.builder()
                         .bno(post.getBno())
                         .title(post.getTitle())
-                        .author(post.getAuthor())
+                        .writer(post.getWriter())
                         .fileName(post.getBoardAttachFiles()
                                 .stream()
                                 .map(file -> file.getFileName())
@@ -72,6 +72,8 @@ public class BoardPostSearchImpl extends QuerydslRepositorySupport implements Bo
                                 .findFirst()
                                 .map(Collections::singletonList)
                                 .orElse(Collections.emptyList()))
+                        .createTime(post.getCreateTime())
+                        .updateTime(post.getUpdateTime())
                         .build())
                 .collect(Collectors.toList());
 
@@ -97,7 +99,7 @@ public class BoardPostSearchImpl extends QuerydslRepositorySupport implements Bo
                 .leftJoin(qBoardPost.boardAttachFiles, qBoardAttachFile)
                 .where(qBoardPost.bno.eq(bno)
                         .and(qBoardPost.delflag.eq(false)))
-                .select(qBoardPost.bno, qBoardPost.title, qBoardPost.author, qBoardPost.content,
+                .select(qBoardPost.bno, qBoardPost.title, qBoardPost.writer, qBoardPost.content,
                         qBoardPost.createTime, qBoardPost.updateTime, qBoardAttachFile.fileName);
 
         List<Tuple> resultList = query.fetch();
@@ -110,7 +112,7 @@ public class BoardPostSearchImpl extends QuerydslRepositorySupport implements Bo
                             BoardPostReadDTO.BoardPostReadDTOBuilder builder = BoardPostReadDTO.builder()
                                     .bno(tuples.get(0).get(qBoardPost.bno))
                                     .title(tuples.get(0).get(qBoardPost.title))
-                                    .author(tuples.get(0).get(qBoardPost.author))
+                                    .writer(tuples.get(0).get(qBoardPost.writer))
                                     .content(tuples.get(0).get(qBoardPost.content))
                                     .createTime(tuples.get(0).get(qBoardPost.createTime))
                                     .updateTime(tuples.get(0).get(qBoardPost.updateTime));

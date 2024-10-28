@@ -2,6 +2,7 @@ package org.sunbong.board_api1.board.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.sunbong.board_api1.board.domain.BoardPost;
 import org.sunbong.board_api1.board.dto.BoardPostAddDTO;
@@ -40,16 +41,17 @@ public class BoardPostService {
         return result;
     }
 
-    public Long newPost(BoardPostAddDTO boardPost, List<MultipartFile> files) {
+    public BoardPostAddDTO newPost(BoardPostAddDTO boardPostDTO,
+                                   @RequestParam(required = false) List<MultipartFile> files) {
 
         BoardPost post = BoardPost.builder()
-                .title(boardPost.getTitle())
-                .author(boardPost.getAuthor())
-                .content(boardPost.getContent())
+                .title(boardPostDTO.getTitle())
+                .writer(boardPostDTO.getWriter())
+                .content(boardPostDTO.getContent())
                 .build();
 
 
-        if(boardPost.getFiles() != null && !boardPost.getFiles().isEmpty()) {
+        if(boardPostDTO.getFiles() != null && !boardPostDTO.getFiles().isEmpty()) {
             for (MultipartFile file : files) {
                 Map<String, String> fileData = saveFileAndCreateThumbnail(file);
                 String savedFileName = fileData.get("savedFileName");
@@ -60,10 +62,11 @@ public class BoardPostService {
         }
 
         boardRepository.save(post);
-        return post.getBno();
+        return boardPostDTO;
     }
 
-    public void updatePost(Long bno, BoardPostAddDTO boardPost, List<MultipartFile> files) {
+    public BoardPostAddDTO updatePost(Long bno, BoardPostAddDTO boardPostDTO,
+                                      @RequestParam(required = false) List<MultipartFile> files) {
         BoardPost post = boardRepository.findById(bno)
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
 
@@ -75,11 +78,11 @@ public class BoardPostService {
 //                .createTime(post.getCreateTime())
 //                .build();
         BoardPost update = post.toBuilder()
-                .title(boardPost.getTitle())
-                .content(boardPost.getContent())
+                .title(boardPostDTO.getTitle())
+                .content(boardPostDTO.getContent())
                 .build();
 
-        if(boardPost.getFiles() != null && !boardPost.getFiles().isEmpty()) {
+        if(boardPostDTO.getFiles() != null && !boardPostDTO.getFiles().isEmpty()) {
             for (MultipartFile file : files) {
                 Map<String, String> fileData = saveFileAndCreateThumbnail(file);
                 String savedFileName = fileData.get("savedFileName");
@@ -89,11 +92,12 @@ public class BoardPostService {
             }
         }
         boardRepository.save(update);
+        return boardPostDTO;
     }
 
 
     // 게시글 소프트 삭제
-    public void softDeletePost(Long bno) {
+    public String softDeletePost(Long bno) {
         // 게시글을 ID로 조회
         BoardPost post = boardRepository.findById(bno)
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
@@ -103,7 +107,7 @@ public class BoardPostService {
         BoardPost delete = BoardPost.builder()
                 .bno(post.getBno())
                 .title(post.getTitle())
-                .author(post.getAuthor())
+                .writer(post.getWriter())
                 .content(post.getContent())
                 .delflag(true)
                 .build();
@@ -111,5 +115,6 @@ public class BoardPostService {
 
         //저장
         boardRepository.save(delete);
+        return delete.getBno() + "번 게시물이 삭제되었습니다.";
     }
 }

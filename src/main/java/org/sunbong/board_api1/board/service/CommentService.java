@@ -2,6 +2,7 @@ package org.sunbong.board_api1.board.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.sunbong.board_api1.board.domain.BoardPost;
 import org.sunbong.board_api1.board.domain.Comment;
 import org.sunbong.board_api1.board.dto.CommentDTO;
 import org.sunbong.board_api1.board.dto.CommentListDTO;
@@ -24,7 +25,7 @@ public class CommentService {
         return result;
     }
 
-    public Long newComment(CommentDTO commentDTO) {
+    public CommentDTO newComment(CommentDTO commentDTO) {
 
         Comment comment = Comment.builder()
                 .boardPost(commentDTO.getBoardPost())
@@ -32,9 +33,9 @@ public class CommentService {
                 .content(commentDTO.getContent())
                 .build();
         commentRepository.save(comment);
-        return comment.getCno();
+        return commentDTO;
     }
-    public void updateComment(Long cno, CommentDTO commentDTO) {
+    public CommentDTO updateComment(Long cno, CommentDTO commentDTO) {
         Comment comment = commentRepository.findById(cno)
                 .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다: " + cno));
         Comment originComment = comment.builder()
@@ -47,6 +48,7 @@ public class CommentService {
                 .content(commentDTO.getContent())
                 .build();
         commentRepository.save(updateComment);
+        return commentDTO;
     }
     public void deleteComment(Long cno) {
         commentRepository.deleteById(cno);
