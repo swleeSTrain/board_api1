@@ -8,7 +8,6 @@ import org.sunbong.board_api1.qna.dto.QuestionListDTO;
 
 public interface QuestionSearch {
 
-
     PageResponseDTO<QuestionListDTO> questionList(PageRequestDTO pageRequestDTO);
 
 }

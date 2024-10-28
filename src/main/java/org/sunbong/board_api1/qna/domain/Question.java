@@ -27,6 +27,7 @@ public class Question extends BaseEntity {
     private String writer;
 
     @ElementCollection(fetch = FetchType.LAZY)
+    @Builder.Default
     @BatchSize(size = 20)
     private Set<String> tags = new HashSet<>();
 
