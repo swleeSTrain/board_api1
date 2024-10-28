@@ -30,26 +30,26 @@ public class NoticeSearchImpl extends QuerydslRepositorySupport implements Notic
 
     @Override
     public PageResponseDTO<NoticeDTO> getNoticesWithPinnedFirst(NoticePageRequestDTO requestDTO, SearchType searchType, String keyword) {
+        log.info("고정된 공지사항 목록을 먼저 조회합니다.");
         List<NoticeDTO> pinnedList = getPinnedNotices();
-        int pinnedCount = pinnedList.size();
 
+        int pinnedCount = pinnedList.size();
         int remainingSize = Math.max(0, requestDTO.getSize() - pinnedCount);
 
         searchType = (searchType == null) ? SearchType.TITLE_WRITER_CONTENT : searchType;
-
         BooleanBuilder condition = createSearchCondition(searchType, keyword);
 
+        log.info("고정된 공지사항 이후 일반 공지사항 목록을 조회합니다.");
         PageResponseDTO<NoticeDTO> regularList = getRegularNoticesWithCondition(
                 NoticePageRequestDTO.builder()
                         .page(requestDTO.getPage())
                         .size(remainingSize)
                         .build(),
-                condition);
+                condition
+        );
 
         List<NoticeDTO> combinedList = new ArrayList<>(pinnedList);
-
         combinedList.addAll(regularList.getDtoList());
-
         long total = pinnedCount + regularList.getTotalCount();
 
         return PageResponseDTO.<NoticeDTO>withAll()
@@ -59,25 +59,28 @@ public class NoticeSearchImpl extends QuerydslRepositorySupport implements Notic
                 .build();
     }
 
-
-    // 고정된 공지사항 목록 조회
     private List<NoticeDTO> getPinnedNotices() {
+        log.info("고정된 공지사항에 대한 쿼리를 실행합니다.");
+
         JPQLQuery<Notice> query = from(notice)
                 .where(notice.isPinned.eq(1))
                 .orderBy(notice.createdDate.desc());
 
-        return query.select(Projections.bean(NoticeDTO.class,
+        List<NoticeDTO> result = query.select(Projections.bean(NoticeDTO.class,
                 notice.nno,
                 notice.title,
                 notice.writer,
                 notice.isPinned
         )).fetch();
+
+        log.info("고정된 공지사항 조회 결과: {}건", result.size());
+        return result;
     }
 
-    // 검색 조건을 적용한 일반 공지사항 조회
     private PageResponseDTO<NoticeDTO> getRegularNoticesWithCondition(NoticePageRequestDTO requestDTO, BooleanBuilder condition) {
-        Pageable pageable = PageRequest.of(requestDTO.getPage() - 1, requestDTO.getSize(), Sort.by("createdDate").descending());
+        log.info("일반 공지사항에 대한 쿼리를 실행합니다. 페이지 번호: {}, 페이지 크기: {}", requestDTO.getPage(), requestDTO.getSize());
 
+        Pageable pageable = PageRequest.of(requestDTO.getPage() - 1, requestDTO.getSize(), Sort.by("createdDate").descending());
         JPQLQuery<Notice> query = from(notice)
                 .where(condition.and(notice.isPinned.eq(0)));
 
@@ -92,6 +95,9 @@ public class NoticeSearchImpl extends QuerydslRepositorySupport implements Notic
 
         long total = query.fetchCount();
 
+        log.info("일반 공지사항 조회 결과: {}건", resultList.size());
+        log.info("일반 공지사항 총 개수: {}건", total);
+
         return PageResponseDTO.<NoticeDTO>withAll()
                 .dtoList(resultList)
                 .noticePageRequestDTO(requestDTO)
@@ -100,12 +106,13 @@ public class NoticeSearchImpl extends QuerydslRepositorySupport implements Notic
     }
 
     private BooleanBuilder createSearchCondition(SearchType searchType, String keyword) {
-
         if (keyword == null || keyword.isEmpty()) {
-
-            return new BooleanBuilder(); // 검색어가 없으면 빈 조건 반환
+            log.info("검색어가 없습니다. 조건 없이 조회합니다.");
+            return new BooleanBuilder();
         }
 
+        log.info("검색 조건을 생성합니다. 검색 유형: {}, 검색어: {}", searchType, keyword);
         return searchType.buildCondition(notice, keyword);
     }
 }
+

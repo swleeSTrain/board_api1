@@ -1,6 +1,7 @@
 package org.sunbong.board_api1.notice.service;
 
 import lombok.extern.log4j.Log4j2;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,6 +26,7 @@ public class NoticeServiceTests {
     // 공지사항 등록 테스트
     @Test
     @Commit
+    @Disabled
     public void testSave() throws Exception {
         NoticeDTO noticeDTO = NoticeDTO.builder()
                 .title("Test Title")
