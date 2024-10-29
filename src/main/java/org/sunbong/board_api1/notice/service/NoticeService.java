@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.sunbong.board_api1.common.dto.PageResponseDTO;
+import org.sunbong.board_api1.notice.dto.NoticePageResponseDTO;
 import org.sunbong.board_api1.notice.dto.NoticePageRequestDTO;
 import org.sunbong.board_api1.notice.domain.Notice;
 import org.sunbong.board_api1.notice.dto.NoticeDTO;
@@ -20,7 +20,7 @@ public class NoticeService {
     private final NoticeRepository noticeRepository;
 
     // 고정 공지사항 포함 전체 조회 메서드
-    public PageResponseDTO<NoticeDTO> getAllNoticesWithPinnedFirst(NoticePageRequestDTO requestDTO) {
+    public NoticePageResponseDTO<NoticeDTO> getAllNoticesWithPinnedFirst(NoticePageRequestDTO requestDTO) {
         // SearchType이 null일 경우 기본값 설정
         SearchType searchType = requestDTO.getSearchType() != null ? requestDTO.getSearchType() : SearchType.TITLE_WRITER_CONTENT;
 
@@ -29,7 +29,7 @@ public class NoticeService {
     }
 
     // 검색 조건에 따라 공지사항 조회 (고정 공지사항 포함)
-    public PageResponseDTO<NoticeDTO> searchNotices(SearchType searchType, String keyword, NoticePageRequestDTO requestDTO) {
+    public NoticePageResponseDTO<NoticeDTO> searchNotices(SearchType searchType, String keyword, NoticePageRequestDTO requestDTO) {
         // 만약 searchType이 null이면 기본 검색 타입 설정
         if (searchType == null) {
             searchType = SearchType.TITLE_WRITER_CONTENT;

@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
-import org.sunbong.board_api1.common.dto.PageResponseDTO;
+import org.sunbong.board_api1.notice.dto.NoticePageResponseDTO;
 import org.sunbong.board_api1.notice.dto.NoticePageRequestDTO;
 import org.sunbong.board_api1.notice.dto.NoticeDTO;
 import org.sunbong.board_api1.common.util.search.SearchType;
@@ -118,7 +118,7 @@ public class NoticeServiceTests {
                 .build();
 
         // When
-        PageResponseDTO<NoticeDTO> response = noticeService.getAllNoticesWithPinnedFirst(requestDTO);
+        NoticePageResponseDTO<NoticeDTO> response = noticeService.getAllNoticesWithPinnedFirst(requestDTO);
 
         // Then
         assertNotNull(response, "응답이 null이 아닙니다.");
@@ -153,7 +153,7 @@ public class NoticeServiceTests {
                 .build();
 
         // When: 서비스에서 공지사항 조회
-        PageResponseDTO<NoticeDTO> response = noticeService.searchNotices(requestDTO.getSearchType(), "test", requestDTO);
+        NoticePageResponseDTO<NoticeDTO> response = noticeService.searchNotices(requestDTO.getSearchType(), "test", requestDTO);
 
         // Then: 응답이 null이 아닌지 확인
         assertThat(response).isNotNull();

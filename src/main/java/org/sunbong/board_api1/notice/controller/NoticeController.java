@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.sunbong.board_api1.common.dto.PageResponseDTO;
+import org.sunbong.board_api1.notice.dto.NoticePageResponseDTO;
 import org.sunbong.board_api1.notice.dto.NoticePageRequestDTO;
 import org.sunbong.board_api1.notice.dto.NoticeDTO;
 import org.sunbong.board_api1.notice.service.NoticeService;
@@ -20,15 +20,15 @@ public class NoticeController {
 
     // 전체 공지사항 조회 (고정 공지사항 포함)
     @GetMapping("list")
-    public ResponseEntity<PageResponseDTO<NoticeDTO>> getAllNotices(NoticePageRequestDTO requestDTO) {
+    public ResponseEntity<NoticePageResponseDTO<NoticeDTO>> getAllNotices(NoticePageRequestDTO requestDTO) {
         log.info("Fetching all notices with pinned ones first");
-        PageResponseDTO<NoticeDTO> response = noticeService.getAllNoticesWithPinnedFirst(requestDTO);
+        NoticePageResponseDTO<NoticeDTO> response = noticeService.getAllNoticesWithPinnedFirst(requestDTO);
         return ResponseEntity.ok(response);
     }
 
     // 검색 조건에 따라 공지사항 조회 (고정 공지사항 포함)
     @GetMapping("/search/{type}/{keyword}")
-    public ResponseEntity<PageResponseDTO<NoticeDTO>> searchNotices(
+    public ResponseEntity<NoticePageResponseDTO<NoticeDTO>> searchNotices(
             @PathVariable("type") String type,
             @PathVariable("keyword") String keyword,
             NoticePageRequestDTO requestDTO) {
@@ -37,7 +37,7 @@ public class NoticeController {
         SearchType searchType = SearchType.fromString(type);
 
         log.info("Searching notices with type: {} and keyword: {}", searchType, keyword);
-        PageResponseDTO<NoticeDTO> response = noticeService.searchNotices(searchType, keyword, requestDTO);
+        NoticePageResponseDTO<NoticeDTO> response = noticeService.searchNotices(searchType, keyword, requestDTO);
         return ResponseEntity.ok(response);
     }
 

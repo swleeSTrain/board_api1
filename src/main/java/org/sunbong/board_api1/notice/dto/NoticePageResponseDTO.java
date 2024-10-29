@@ -1,22 +1,21 @@
-package org.sunbong.board_api1.common.dto;
+package org.sunbong.board_api1.notice.dto;
 
 import lombok.Builder;
 import lombok.Data;
-import org.sunbong.board_api1.notice.dto.NoticePageRequestDTO;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Data
-public class PageResponseDTO<E> {
+public class NoticePageResponseDTO<E> {
     private List<E> dtoList;
     private List<Integer> pageNumList;
     private NoticePageRequestDTO noticePageRequestDTO;
     private boolean prev, next;
     private int totalCount, prevPage, nextPage, totalPage, current;
     @Builder(builderMethodName = "withAll")
-    public PageResponseDTO(List<E> dtoList, NoticePageRequestDTO noticePageRequestDTO, long totalCount) {
+    public NoticePageResponseDTO(List<E> dtoList, NoticePageRequestDTO noticePageRequestDTO, long totalCount) {
         this.dtoList = dtoList;
         this.noticePageRequestDTO = noticePageRequestDTO;
         this.totalCount = (int)totalCount;
