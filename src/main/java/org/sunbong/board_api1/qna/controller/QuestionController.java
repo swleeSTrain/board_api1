@@ -10,6 +10,7 @@ import org.sunbong.board_api1.common.dto.PageResponseDTO;
 import org.sunbong.board_api1.qna.dto.QnaReadDTO;
 import org.sunbong.board_api1.qna.dto.QuestionAddDTO;
 import org.sunbong.board_api1.qna.dto.QuestionListDTO;
+import org.sunbong.board_api1.qna.service.AnswerService;
 import org.sunbong.board_api1.qna.service.QuestionService;
 
 import java.io.IOException;
@@ -65,7 +66,7 @@ public class QuestionController {
             @PathVariable Long qno,
             @ModelAttribute QuestionAddDTO dto) throws IOException {
 
-        Long updatedQno = questionService.updateQuestion(qno, dto);
+        Long updatedQno = questionService.editQuestion(qno, dto);
 
         return ResponseEntity.ok(updatedQno);
     }

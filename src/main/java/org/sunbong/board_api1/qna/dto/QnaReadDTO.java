@@ -15,29 +15,15 @@ import java.util.Set;
 @NoArgsConstructor
 public class QnaReadDTO {
 
-    // 질문 관련
     private Long qno;
-    private String questionTitle;
-    private String questionContent;
-    private String questionWriter;
-    private LocalDateTime questionCreatedDate;
-    private LocalDateTime questionModifiedDate;
+    private String title;
+    private String content;
+    private String writer;
+    private LocalDateTime createdDate;
+    private LocalDateTime modifiedDate;
     private Set<String> tags;
-
-    // 첨부된 파일 이름 목록 (질문에 첨부된 파일들)
     private Set<String> attachFiles;
 
-    // 답변 관련
-    private List<AnswerDTO> answers; // AnswerDTO를 추가
-
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class AnswerDTO {
-        private Long ano;
-        private String answerContent;
-        private String answerWriter;
-        private LocalDateTime answerCreatedDate;
-    }
+    // 다중 답변
+    private List<AnswerListDTO> answers;;
 }
-

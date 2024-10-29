@@ -4,9 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.sunbong.board_api1.common.dto.PageRequestDTO;
+import org.sunbong.board_api1.common.dto.PageResponseDTO;
+import org.sunbong.board_api1.common.exception.CommonExceptions;
 import org.sunbong.board_api1.qna.domain.Answer;
 import org.sunbong.board_api1.qna.domain.Question;
 import org.sunbong.board_api1.qna.dto.AnswerAddDTO;
+import org.sunbong.board_api1.qna.dto.QnaReadDTO;
 import org.sunbong.board_api1.qna.repository.AnswerRepository;
 import org.sunbong.board_api1.qna.repository.QuestionRepository;
 
