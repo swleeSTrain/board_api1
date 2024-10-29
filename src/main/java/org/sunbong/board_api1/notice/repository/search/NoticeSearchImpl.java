@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.sunbong.board_api1.notice.dto.NoticePageRequestDTO;
-import org.sunbong.board_api1.common.dto.PageResponseDTO;
+import org.sunbong.board_api1.notice.dto.NoticePageResponseDTO;
 import org.sunbong.board_api1.common.util.search.SearchType;
 import org.sunbong.board_api1.notice.domain.Notice;
 import org.sunbong.board_api1.notice.domain.QNotice;
@@ -30,7 +30,7 @@ public class NoticeSearchImpl extends QuerydslRepositorySupport implements Notic
     }
 
     @Override
-    public PageResponseDTO<NoticeDTO> getNoticesWithPinnedFirst(NoticePageRequestDTO requestDTO, SearchType searchType, String keyword) {
+    public NoticePageResponseDTO<NoticeDTO> getNoticesWithPinnedFirst(NoticePageRequestDTO requestDTO, SearchType searchType, String keyword) {
         log.info("고정된 공지사항 목록을 먼저 조회합니다.");
         List<NoticeDTO> pinnedList = getPinnedNotices();
 
@@ -41,7 +41,7 @@ public class NoticeSearchImpl extends QuerydslRepositorySupport implements Notic
         BooleanBuilder condition = createSearchCondition(searchType, keyword);
 
         log.info("고정된 공지사항 이후 일반 공지사항 목록을 조회합니다.");
-        PageResponseDTO<NoticeDTO> regularList = getRegularNoticesWithCondition(
+        NoticePageResponseDTO<NoticeDTO> regularList = getRegularNoticesWithCondition(
                 NoticePageRequestDTO.builder()
                         .page(requestDTO.getPage())
                         .size(remainingSize)
@@ -53,7 +53,7 @@ public class NoticeSearchImpl extends QuerydslRepositorySupport implements Notic
         combinedList.addAll(regularList.getDtoList());
         long total = pinnedCount + regularList.getTotalCount();
 
-        return PageResponseDTO.<NoticeDTO>withAll()
+        return NoticePageResponseDTO.<NoticeDTO>withAll()
                 .dtoList(combinedList)
                 .noticePageRequestDTO(requestDTO)
                 .totalCount(total)
@@ -78,7 +78,7 @@ public class NoticeSearchImpl extends QuerydslRepositorySupport implements Notic
         return result;
     }
 
-    private PageResponseDTO<NoticeDTO> getRegularNoticesWithCondition(NoticePageRequestDTO requestDTO, BooleanBuilder condition) {
+    private NoticePageResponseDTO<NoticeDTO> getRegularNoticesWithCondition(NoticePageRequestDTO requestDTO, BooleanBuilder condition) {
         log.info("일반 공지사항에 대한 쿼리를 실행합니다. 페이지 번호: {}, 페이지 크기: {}", requestDTO.getPage(), requestDTO.getSize());
 
         Pageable pageable = PageRequest.of(requestDTO.getPage() - 1, requestDTO.getSize(), Sort.by("createdDate").descending());
@@ -99,7 +99,7 @@ public class NoticeSearchImpl extends QuerydslRepositorySupport implements Notic
         log.info("일반 공지사항 조회 결과: {}건", resultList.size());
         log.info("일반 공지사항 총 개수: {}건", total);
 
-        return PageResponseDTO.<NoticeDTO>withAll()
+        return NoticePageResponseDTO.<NoticeDTO>withAll()
                 .dtoList(resultList)
                 .noticePageRequestDTO(requestDTO)
                 .totalCount(total)
